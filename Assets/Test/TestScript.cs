@@ -15,6 +15,11 @@ public class TestScript : MonoBehaviour {
     public AnimationCurve curve;
 
     private void Update() {
+        if (Input.GetKeyDown(KeyCode.F2)) {
+            Debug.Log("LOG");
+            Debug.LogError("ERROR");
+            Debug.LogWarning("WARNING");
+        }
         if (Input.GetKeyDown(KeyCode.Space))
             goTest.MoveTo(target.position, target.rotation, time);
     }

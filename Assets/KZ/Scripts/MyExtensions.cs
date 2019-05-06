@@ -9,6 +9,7 @@ using System.Xml;
 using V3 = UnityEngine.Vector3;
 using V2 = UnityEngine.Vector2;
 using UnityEngine.UI;
+using System.Globalization;
 
 namespace KZ {
     public static class MyExtensions {
@@ -271,6 +272,36 @@ namespace KZ {
         public static Color SetG(this Color c, float g) { c.g = g; return c; }
         public static Color SetB(this Color c, float b) { c.b = b; return c; }
         public static Color SetA(this Color c, float a) { c.a = a; return c; }
+
+        public static bool HexToColor(this string hexValue, out Color color) {
+            color = Color.clear;
+            var h = hexValue;
+            if (h.Length == 6) h += "ff";
+            if (h.Length != 8) {
+                Debug.Log("Cant convert from HexColor: " + hexValue);
+                return false;
+            }
+
+            var r_str = h.Remove(2);
+            var g_str = h.Remove(0,2).Remove(2);
+            var b_str = h.Remove(0,4).Remove(2);
+            var a_str = h.Remove(0,6);
+
+            int auxR = 0, auxG = 0, auxB = 0, auxA = 0;
+
+            bool correct =
+                int.TryParse(r_str, NumberStyles.AllowHexSpecifier, null, out auxR) &&
+                int.TryParse(g_str, NumberStyles.AllowHexSpecifier, null, out auxG) &&
+                int.TryParse(b_str, NumberStyles.AllowHexSpecifier, null, out auxB) &&
+                int.TryParse(a_str, NumberStyles.AllowHexSpecifier, null, out auxA);
+            if (!correct)
+                Debug.LogError("Error trying to convert Hex to Color: " + hexValue);
+            color.r = auxR / 255f;
+            color.g = auxG / 255f;
+            color.b = auxB / 255f;
+            color.a = auxA / 255f;
+            return correct;
+        }
 
         //RenderTexture
         public static Texture2D ToTexture2D(this RenderTexture rt, TextureFormat format = TextureFormat.RGB24) {

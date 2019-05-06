@@ -8,7 +8,7 @@ using Object = UnityEngine.Object;
 namespace KZ.Audio {
     public static class SoundManager {
 
-        const string AUDIO_EMITTER_PATH = "Prefabs/AudioEmitter";
+        const string AUDIO_EMITTER_PATH = "Audio/AudioEmitter";
         [RuntimeInitializeOnLoadMethod]
         static void Initialize() {
             _n = new GameObject().AddComponent<SoundManager_CoroutineHandler>();
@@ -218,17 +218,4 @@ namespace KZ.Audio {
     }
 
     class SoundManager_CoroutineHandler : MonoBehaviour { }
-
 }
-
-
-
-
-/*
-    1- destroy 1 obj every X seconds
-
-    2- destroy 1 if last used was X seconds ago
-
-    3- destroy exceeded if maxUsed in last X
-
-*/

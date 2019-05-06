@@ -261,6 +261,7 @@ MonoBehaviour:
   _txtOutput: {fileID: 114721443806641344}
   _inpCommand: {fileID: 114960050145114988}
   _maxLines: 100
+  _colorInputCommand: {r: 0, g: 1, b: 0, a: 1}
 --- !u!114 &114035069791301714
 MonoBehaviour:
   m_ObjectHideFlags: 1

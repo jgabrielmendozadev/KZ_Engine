@@ -15,15 +15,18 @@ public class DevConsole : MonoBehaviour {
     [SerializeField] Text _txtOutput = null;
     [SerializeField] InputField _inpCommand = null;
     [SerializeField] int _maxLines = 100;
+    [SerializeField] Color _colorInputCommand = Color.green;
+    [SerializeField] Color _colorInputNotFound = Color.yellow;
+
     private void Awake() {
         Awake_Singleton();
 
         //BASIC CONSOLE
         _isOpen = false;
-        AssignCommand("HELP", Help, "Shows all commands");
-        AssignCommand("CLEAR", Clear, "Clears this text");
-        AssignCommand("KZ", KZ, "KZ");
-
+        AssignCommand("help", Help, "Shows all commands");
+        AssignCommand("clear", Clear, "Clears this text");
+        AssignCommand("exit", Exit, "Quits the game");
+        
         //INPUTS
         InputManager.AssignKey("ToggleConsole", KeyCode.F1);
         OnOpenConsole += () => {
@@ -45,14 +48,7 @@ public class DevConsole : MonoBehaviour {
         if (InputManager.GetInput("Execute")) Execute();
     }
 
-    static void KZ() {
-        for (int i = 0; i < 99; i++) {
-            Write(i + ":sdfjkl\n·pepe argento");
-        }
-    }
-
     //STATIC
-
     public struct ConsoleCommand {
         public Action<string> command;
         public string help;
@@ -62,13 +58,9 @@ public class DevConsole : MonoBehaviour {
         }
     }
     static bool _isOpen;
+    static Dictionary<string, ConsoleCommand> _allCommands = new Dictionary<string, ConsoleCommand>();
     public static event Action OnOpenConsole = delegate { };
     public static event Action OnCloseConsole = delegate { };
-    static Dictionary<string, ConsoleCommand> _allCommands = new Dictionary<string, ConsoleCommand>();
-
-    
-
-    
 
     [RuntimeInitializeOnLoadMethod]
     static void SpawnOnGameInit() {
@@ -87,12 +79,20 @@ public class DevConsole : MonoBehaviour {
     #endregion
 
     #region LOGGER
-    public static void Write(string s) {
-        instance._txtOutput.text += "\n·" + s;
+    static void Write(string text) {
+        instance._txtOutput.text += "\n" + text;
         LimitLines();
         FixLogHeight();
     }
-
+    public static void Log(string text) {
+        Write("·" + text);
+    }
+    public static void Log(string text, Color color) {
+        //instance._txtOutput.text += "\n·" + text.Colorize(color);
+        //LimitLines();
+        //FixLogHeight();
+        Write("·" + text.Colorize(color));
+    }
     static void LimitLines() {
         Canvas.ForceUpdateCanvases();
         var lines = instance._txtOutput.cachedTextGenerator.lines;
@@ -108,82 +108,82 @@ public class DevConsole : MonoBehaviour {
 
     #region COMMAND HANDLING
     public static void RemoveCommand(string commandName) {
-        string cmd = commandName.ToUpper();
+        //string cmd = commandName.ToUpper();
+        string cmd = commandName;
         _allCommands.Remove(cmd);
     }
     //no params
     public static void AssignCommand(string commandName, Action command, string helpText = "") {
-        string cn = commandName.ToUpper();
-        if (_allCommands.ContainsKey(cn))
-            Debug.Log("command already contained: " + cn);
+        //string cmd = commandName.ToUpper();
+        string cmd = commandName;
+        if (_allCommands.ContainsKey(cmd))
+            Debug.Log("command already contained: " + cmd);
         else {
-            _allCommands[cn] = new ConsoleCommand(param => command(), helpText);
+            _allCommands[cmd] = new ConsoleCommand(param => command(), helpText);
         }
     }
     //int
     public static void AssignCommand(string commandName, Action<int> command, string helpText = "") {
-        string cn = commandName.ToUpper();
-        if (_allCommands.ContainsKey(cn))
-            Debug.Log("command already contained: " + cn);
+        //string cmd = commandName.ToUpper();
+        string cmd = commandName;
+        if (_allCommands.ContainsKey(cmd))
+            Debug.Log("command already contained: " + cmd);
         else {
-            _allCommands[cn] = new ConsoleCommand(
+            _allCommands[cmd] = new ConsoleCommand(
                 param => {
                     int value;
                     if (int.TryParse(param, out value))
                         command(value);
                     else
-                        Write("Wrong parameter, type expected: INT\n" + cn + ": " + _allCommands[cn].help);
+                        Log("Wrong parameter, type expected: INT\n" + cmd + ": " + _allCommands[cmd].help);
                 },
                 helpText);
         }
     }
     //string
     public static void AssignCommand(string commandName, Action<string> command, string helpText = "") {
-        string cn = commandName.ToUpper();
-        if (_allCommands.ContainsKey(cn))
-            Debug.Log("command already contained: " + cn);
+        //string cmd = commandName.ToUpper();
+        string cmd = commandName;
+        if (_allCommands.ContainsKey(cmd))
+            Debug.Log("command already contained: " + cmd);
         else {
-            _allCommands[cn] = new ConsoleCommand(command, helpText);
+            _allCommands[cmd] = new ConsoleCommand(command, helpText);
         }
-    }
-    #endregion
-
-    #region BASIC COMMANDS
-    static void Help() {
-        string s = "HELP:\nPossible Commands:" +
-            _allCommands.Aggregate("", (r, kv) => r + "\n" + kv.Key + " -> " + kv.Value.help);
-        Write(s);
-    }
-    static void Clear() {
-        instance._txtOutput.text = "";
-        FixLogHeight();
     }
     #endregion
 
     #region DEVELOPER CONSOLE HANDLING
     public static void Execute() {
-        //receive text
+        //read input
         string input = instance._inpCommand.text.Replace("\n", "");
 
-        //process
-        if (input == "")
-            return;
-        List<string> inputs = input.Split(' ').Where(x => x != "").ToList();
-        if (inputs.Count == 0)
-            return;
-        string command = inputs[0];
-        string param = inputs.Count > 1 ?
-            inputs.Skip(1).MakeString(" ") :
-            "";
-        if (!_allCommands.ContainsKey(command.ToUpper()))
-            Write("Unknown command: " + command);
-        else
-            _allCommands[command.ToUpper()].command(param);
+        //if input is empty
+        if (input == "") return; 
 
+        List<string> inputs = input.Split(' ').Where(x => x != "").ToList();
+
+        //input has no words, only empty spaces
+        if (inputs.Count == 0) return;
+
+        string
+            command = inputs[0],
+            param = inputs.Skip(1).MakeString(" ");
+
+        string key = "";
+        bool cmdFound = _allCommands.Keys.Find(k => k.ToUpper() == command.ToUpper(), ref key);
+        Color color = cmdFound ? instance._colorInputCommand : instance._colorInputNotFound;
+
+        //Write that input
+        Write((">" + command).Colorize(color) + " " + param);
+
+        if (cmdFound)
+            _allCommands[key].command(param);
+        else
+            Log("Unknown command: " + command);
+        
         //reset input
         instance._inpCommand.text = "";
-        Canvas.ForceUpdateCanvases();
-        instance._inpCommand.Select();
+        SelectInputField();
     }
 
     public static void ToggleConsole() {
@@ -196,33 +196,58 @@ public class DevConsole : MonoBehaviour {
     public static void OpenConsole() {
         instance._goConsole.SetActive(true);
         instance._inpCommand.text = "";
-        Canvas.ForceUpdateCanvases();
-        instance._inpCommand.Select();
+        SelectInputField();
         OnOpenConsole();
     }
     public static void CloseConsole() {
         instance._goConsole.SetActive(false);
         instance._inpCommand.text = "";
-        Canvas.ForceUpdateCanvases();
         OnCloseConsole();
+    }
+
+    static void SelectInputField() {
+        UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
+        UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(instance._inpCommand.gameObject);
+    }
+    #endregion
+
+    #region BASIC COMMANDS
+    static void Help() {
+        var max = _allCommands.Keys.Max(k => k.Length) + 1;
+        string s = "Commands are not case sensitive. Possible Commands:\n"
+            + _allCommands.MakeString(kv => " -" + kv.Key.Fill(max, " ") + "-> " + kv.Value.help, '\n');
+        Log(s);
+    }
+    static void Clear() {
+        instance._txtOutput.text = "";
+        FixLogHeight();
+    }
+    static void Exit() {
+        Log("CLOSING GAME");
+#if UNITY_EDITOR
+        Debug.Break();
+#endif
+        Application.Quit();
     }
     #endregion
 
     #region UNITY CONSOLE LOG
     static void PrintLog(string condition, string stackTrace, LogType type) {
         //add new line
-        string s = "<b>" + DateTime.Now.ToKzFormat2() + "</b>" +
-            " <color=" + _logColors[type] + ">" + type + "</color>: "
+        var c = _logColors[type];
+        string s = "█".Colorize(c)
+            + "<b>" + DateTime.Now.ToKzFormat2() + "</b> "
+            + ("-" + type).Colorize(c) + ": "
             + condition.Replace("\n", "\n  ");
         Write(s);
     }
 
-    static readonly Dictionary<LogType, string> _logColors = new Dictionary<LogType, string>() {
-        {LogType.Exception,"red" },
-        {LogType.Error,    "red" },
-        {LogType.Warning,  "yellow" },
-        {LogType.Assert,   "yellow" },
-        {LogType.Log,      "silver" }
+    static readonly Dictionary<LogType, Color> _logColors = new Dictionary<LogType, Color>() {
+        {LogType.Exception, Color.red},
+        {LogType.Error,     Color.red},
+        {LogType.Warning,   Color.yellow},
+        {LogType.Assert,    Color.yellow},
+        {LogType.Log,       new Color(192f/255f, 192f/255f, 192f/255f, 1)}
     };
     #endregion
 }
