@@ -8,9 +8,6 @@ namespace KZ {
         public InputType GetInputType() { return _type; }
         public KeyCode GetKeyCode() { return default(KeyCode); }
 
-        public void SetValues(KeyCode key, InputType type) {
-            _type = type;
-        }
         public bool GetInput() {
             return _inputState;
         }

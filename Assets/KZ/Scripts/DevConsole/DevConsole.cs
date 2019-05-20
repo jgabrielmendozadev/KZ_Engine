@@ -26,7 +26,7 @@ public class DevConsole : MonoBehaviour {
         AssignCommand("help", Help, "Shows all commands");
         AssignCommand("clear", Clear, "Clears this text");
         AssignCommand("exit", Exit, "Quits the game");
-        
+
         //INPUTS
         InputManager.AssignKey("ToggleConsole", KeyCode.F1);
         OnOpenConsole += () => {
