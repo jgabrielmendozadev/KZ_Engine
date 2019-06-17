@@ -110,12 +110,9 @@ namespace KZ {
     public enum InputType { Hold, Down, Up }
 
     public interface IInputObject {
-
         InputType GetInputType();
         KeyCode GetKeyCode();
-
         bool GetInput();
-
     }
 
     public class InputObjectClass : IInputObject {
