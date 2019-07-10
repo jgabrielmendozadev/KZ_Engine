@@ -6,6 +6,7 @@ using UnityEngine;
 using System.IO;
 using System.Reflection;
 using System.Xml;
+using UnityEngine.Networking;
 
 namespace KZ {
     public static class FilesManager {
@@ -92,17 +93,30 @@ namespace KZ {
 
         #region AUDIO
         public static void LoadAudio(string fileName, AudioType at, Action<AudioClip> OnLoad) {
-            if (!File.Exists(path + SEPARATOR + fileName)) {
-                Debug.LogWarning("Audio not found: \"" + path + SEPARATOR + fileName + "\"");
+            var fullPath = Path.GetFullPath(path + SEPARATOR + fileName);
+            if (!File.Exists(fullPath)) {
+                Debug.LogWarning("Audio not found: \"" + fullPath + "\"");
                 return;
             }
             Utility.GetGo().StartCoroutine(LoadAudioCR(fileName, at, OnLoad));
         }
         /// <summary>Remember to use clip.UnloadAudioData() and Destoy(clip)</summary>
         static IEnumerator LoadAudioCR(string fileName, AudioType at, Action<AudioClip> OnLoad) {
-            using (WWW w = new WWW("file://" + path + SEPARATOR + fileName)) {
-                yield return w;
-                OnLoad(w.GetAudioClip(false, false, at));
+            var fullPath = Path.GetFullPath(path + SEPARATOR + fileName);
+            var url = "file://" + fullPath;
+            using (UnityWebRequest web = UnityWebRequestMultimedia.GetAudioClip(url, at)) {
+                yield return web.SendWebRequest();
+                if (!web.isNetworkError && !web.isHttpError) {
+                    var clip = DownloadHandlerAudioClip.GetContent(web);
+                    if (clip) {
+                        OnLoad(clip);
+                        Debug.Log("AudioClip loaded: " + url);
+                    }
+                    else
+                        throw new Exception("audio can't be loaded: " + url);
+                }
+                else
+                    throw new Exception("Error loading audio:" + (web.isNetworkError ? " NetworkError" : "") + (web.isHttpError ? " HttpError" : ""));
             }
         }
         #endregion

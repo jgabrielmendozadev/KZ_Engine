@@ -42,10 +42,6 @@ namespace KZ {
             l.Add(elem);
             return l;
         }
-        public static SyncListStruct<T> AddReturn<T>(this SyncListStruct<T> l, T elem) where T : struct {
-            l.Add(elem);
-            return l;
-        }
         public static HashSet<T> AddReturn<T>(this HashSet<T> h, T elem) {
             h.Add(elem);
             return h;
