@@ -16,7 +16,7 @@ namespace KZ {
 
         #region PATHS
 #if UNITY_ANDROID && !UNITY_EDITOR
-        public static string path = "mnt/sdcard/" + Application.productName + "_" + folderName + "/";
+        public static string path = "mnt/sdcard/KZ_Games/" + Application.productName + "_" + folderName + "/";
         public const char SEPARATOR = '/';
 #else
         public static string path = Path.GetFullPath(Application.dataPath + "/../" + folderName + "/");
