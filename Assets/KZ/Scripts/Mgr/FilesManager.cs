@@ -13,22 +13,26 @@ namespace KZ {
 
         public const string folderName = "GameFiles";
 
-
         #region PATHS
+        public static string path = GetPath_GameFiles();
 #if UNITY_ANDROID && !UNITY_EDITOR
-        public static string path = "mnt/sdcard/KZ_Games/" + Application.productName + "_" + folderName + "/";
         public const char SEPARATOR = '/';
 #else
-        public static string path = Path.GetFullPath(Application.dataPath + "/../" + folderName + "/");
         public const char SEPARATOR = '\\';
 #endif
+        
 
-        /// <returns>path of pathfile. Example: "C:\files\pepe.jpg" -> returns -> "C:\files\" )</returns>
+        public static string GetPath_GameFiles() {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            return "mnt/sdcard/KZ_Games/" + Application.productName + "_" + folderName + "/";
+#else
+            return Path.GetFullPath(Application.dataPath + "/../" + folderName + "/");
+#endif
+        }
+
+        /// <returns>path of pathfile. Example: "C:\files\pepe.jpg" -> returns -> "C:\files\"</returns>
         public static string GetPath(string pathFile) {
-            string[] ps = pathFile.Split(SEPARATOR);
-            return (ps.Length > 1) ?
-                ps.Take(ps.Length - 1).MakeString(SEPARATOR) + SEPARATOR :
-                "";
+            return Path.GetDirectoryName(pathFile);
         }
         #endregion
 
@@ -418,6 +422,7 @@ namespace KZ {
         }
 
         #endregion
+
 
     }
 }

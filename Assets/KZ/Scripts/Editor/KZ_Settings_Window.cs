@@ -1,11 +1,4 @@
-﻿using System;
-using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.UI;
-using Random = UnityEngine.Random;
-using UnityEditor;
+﻿using UnityEditor;
 
 public class KZ_Settings_Window : EditorWindow {
 
@@ -20,4 +13,6 @@ public class KZ_Settings_Window : EditorWindow {
         EditorPrefs.SetBool("AllowDevConsole", allowDevConsole);
     }
 
+
+    
 }
