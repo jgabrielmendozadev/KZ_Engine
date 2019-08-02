@@ -15,12 +15,8 @@ namespace KZ {
 
         #region PATHS
         public static string path = GetPath_GameFiles();
-#if UNITY_ANDROID && !UNITY_EDITOR
-        public const char SEPARATOR = '/';
-#else
-        public const char SEPARATOR = '\\';
-#endif
-        
+
+        public static readonly char SEPARATOR = Path.PathSeparator; 
 
         public static string GetPath_GameFiles() {
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -30,7 +26,7 @@ namespace KZ {
 #endif
         }
 
-        /// <returns>path of pathfile. Example: "C:\files\pepe.jpg" -> returns -> "C:\files\"</returns>
+        ///<summary>returns path of pathfile. Example: "C:\files\pepe.jpg" -> returns -> "C:\files\"</summary>
         public static string GetPath(string pathFile) {
             return Path.GetDirectoryName(pathFile);
         }
@@ -47,14 +43,18 @@ namespace KZ {
                 : new List<string>();
         }
 
+        /// <param name="filename">"file.txt" or "SubFolder/file.txt"</param>
         public static void SaveTextFile(string fileName, IEnumerable<string> content) {
             string file = Path.GetFullPath(path + fileName);
             Directory.CreateDirectory(GetPath(file));
             File.WriteAllLines(file, content.ToArray(), TEXT_ENCODING);
         }
 
+        /// <param name="filename">"file.txt" or "SubFolder/file.txt"</param>
         public static void AddLineToTextFile(string fileName, string newLine) {
-            SaveTextFile(fileName, LoadTextFile(fileName).AddReturn(newLine));
+            var file = Path.GetFullPath(path + fileName);
+            var text = File.Exists(file) ? '\n' + newLine : newLine;
+            File.AppendAllText(file, text, TEXT_ENCODING);
         }
         #endregion
 
@@ -128,13 +128,25 @@ namespace KZ {
 
         #region CSV
         const char CSV_SEP = ';';
-        const string BOOL_TRUE = "SI", BOOL_FALSE = "NO";
+        const string BOOL_TRUE = "TRUE", BOOL_FALSE = "FALSE";
 
+        static string ConverToCSVLine<T>(T element, string[] fieldsReference) {
+            Func<object, string> f2;
+            return fieldsReference
+                        .Select(f => element.GetType().GetField(f))    //to fieldInfo[]
+                        .Select(fi => {
+                            if (fi.FieldType.IsEnum)
+                                return fi.GetValue(element).ToString();
+                            else if (converters_String.TryGetValue(fi.FieldType, out f2))
+                                return f2(fi.GetValue(element));
+                            else
+                                return "NULL VALUE";
+                        }).MakeString(CSV_SEP);
+        }
         static void DebugUndefinedParserMsg(Type t) {
             Debug.LogWarning("parser not defined for \"" + t + "\", using default(" + t + ")");
         }
         public static List<T> LoadCSV<T>(string fileName) where T : new() {
-
 
             string file = Path.GetFullPath(path + fileName);
             Directory.CreateDirectory(GetPath(file));
@@ -144,9 +156,9 @@ namespace KZ {
             var r = new List<T>();
             #region VARS
             string[]
-                    _currLine,
-                    content = File.ReadAllLines(file),
-                    fields = content.First().Split(CSV_SEP);
+                _currLine,
+                content = File.ReadAllLines(file),
+                fields = content.First().Split(CSV_SEP);
             Dictionary<string, int> dict = Enumerable.Range(0, int.MaxValue)
                 .ZipWith(fields, (i, name) => new { name, i })
                 .Aggregate(new Dictionary<string, int>(), (d, x) => d.AddReturn(x.name, x.i));
@@ -179,25 +191,15 @@ namespace KZ {
             return r;
         }
         public static void SaveCSV<T>(string fileName, IEnumerable<T> content) {
+
             string file = Path.GetFullPath(path + fileName);
             Directory.CreateDirectory(GetPath(file));
 
             string line1 = typeof(T).GetFields().MakeString(x => x.Name, CSV_SEP);
             string[] fields = line1.Split(CSV_SEP);
-            Func<object, string> f2;
-
             string[] l = new string[1] { line1 }
-                .Concat(content
-                    .Select(e => fields
-                        .Select(f => e.GetType().GetField(f))
-                        .Select(fi =>
-                            fi.FieldType.IsEnum ?
-                                fi.GetValue(e).ToString() :
-                                (converters_String.TryGetValue(fi.FieldType, out f2) ?
-                                    f2(fi.GetValue(e)) :
-                                    "NULL VALUE")
-                        )
-                    .MakeString(CSV_SEP))
+                .Concat(
+                    content.Select(e => ConverToCSVLine(e, fields))
                 ).ToArray();
 
             File.WriteAllLines(file, l, TEXT_ENCODING);
@@ -236,10 +238,10 @@ namespace KZ {
         
         static readonly Dictionary<Type, Func<object, string>> converters_String =
             new Dictionary<Type, Func<object, string>>()
-                .AddReturn(typeof(int), o => ConvertToString((int)o))
-                .AddReturn(typeof(bool), o => ConvertToString((bool)o))
-                .AddReturn(typeof(float), o => ConvertToString((float)o))
-                .AddReturn(typeof(string), o => ConvertToString((string)o));
+            .AddReturn(typeof(int), o => ConvertToString((int)o))
+            .AddReturn(typeof(bool), o => ConvertToString((bool)o))
+            .AddReturn(typeof(float), o => ConvertToString((float)o))
+            .AddReturn(typeof(string), o => ConvertToString((string)o));
         #endregion
 
         
@@ -424,5 +426,34 @@ namespace KZ {
         #endregion
 
 
+        #region KZ_SETTINGS
+        public static Dictionary<string, string> LoadKZSettings() {
+            var r = new Dictionary<string, string>();
+
+            var ls = LoadTextFile("KZ_Settings.txt");
+            for (int i = 0; i < ls.Count; i++) {
+                var l = ls[i];
+                if (!l.StartsWith("//")) {
+                    var data =
+                        new string(l.ToCharArray().Where(c => !Char.IsWhiteSpace(c)).ToArray()) //remove whitespaces
+                        .Split('=').Where(x => x != "").ToList(); //divide
+                    if (data.Count == 2) {
+                        if (!r.ContainsKey(data[0]))
+                            r.Add(data[0], data[1]);
+                        else
+                            SettingsLogWarning(i, l, "Key already contained.");
+                    }
+                    else
+                        SettingsLogWarning(i, l, "Wrong format.");
+                }
+            }
+
+            return r;
+        }
+
+        static void SettingsLogWarning(int lineNumber, string line, string msg = "") {
+            Debug.LogWarning("Error loading KZ_Settings.txt line " + (lineNumber + 1) + ": " + line + ". " + msg);
+        }
+        #endregion
     }
 }

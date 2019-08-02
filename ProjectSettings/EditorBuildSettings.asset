@@ -6,5 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/test.unity
+    path: Assets/KZ/Scenes/0.loadScene.unity
+    guid: 5e31ca5201e5b1d4dafee76d785382cf
+  - enabled: 1
+    path: Assets/KZ_Test/test.unity
     guid: ed06b412ebe58414589ddcc9f755ec81
+  m_configObjects: {}

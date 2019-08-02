@@ -34,12 +34,25 @@ namespace KZ.Audio {
             _SFX.transform.parent = _BGM.transform.parent = _VOICE.transform.parent = _parent;
 
             //EMITTERS
-            _emitterParent = new GameObject("Emitters").transform;
-            _emitterParent.SetParent(_parent);
             _emitters = new Stack<AudioEmitter>();
 
+            LoadScene.OnResetApp += ResetValues;
+        }
+        static void ResetValues() {
+            if (_emitterParent) Object.Destroy(_emitterParent.gameObject); //Destroys every audioEmitter
+            _emitterParent = new GameObject("Emitters").transform;
+            _emitterParent.SetParent(_parent);
+            _emitters.Clear();
+            _SFX.Stop();
+            _BGM.Stop();
+            _VOICE.Stop();
+            _SFX.clip = null;
+            _BGM.clip = null;
+            _VOICE.clip = null;
+            _n.StopAllCoroutines();
             _n.StartCoroutine(CR_PoolHandler());
         }
+
 
         static UnityEngine.Audio.AudioMixer _mixer;
         static SoundManager_CoroutineHandler _n;

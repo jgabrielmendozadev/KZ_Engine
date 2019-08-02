@@ -45,6 +45,10 @@ namespace KZ {
 
             CloseConsole();
         }
+        private void Start() {
+            if (!KZ_Settings.GetValue<bool>("useDevConsole", false))
+                Destroy(gameObject);
+        }
         private void Update() {
             if (InputManager.GetInput("ToggleConsole")) ToggleConsole();
             if (InputManager.GetInput("Execute")) Execute();
@@ -68,9 +72,11 @@ namespace KZ {
         static void SpawnOnGameInit() {
             var dc = Instantiate(Resources.Load<DevConsole>("UI/DevConsole"));
             DontDestroyOnLoad(dc.gameObject);
-            InitializeButtons();
+            LoadScene.OnResetApp += InitializeButtons;
         }
-
+        private void OnDestroy() {
+            LoadScene.OnResetApp -= InitializeButtons;
+        }
 
         #region SINGLETON
         static DevConsole instance;
@@ -159,6 +165,8 @@ namespace KZ {
 
         #region DEVELOPER CONSOLE HANDLING
         public static void Execute() {
+            if (!_isOpen) return;
+
             //read input
             string input = instance._inpCommand.text.Replace("\n", "");
 
@@ -259,6 +267,8 @@ namespace KZ {
 
         //ACTIONS
         #region BUTTON HANDLING
+        static List<DevButton> _devButtons = new List<DevButton>();
+
         public static DevButton AddButton(Action<DevButton> onClick, string defaultTitle = "button") {
             var parent = instance._containerDevButtons;
             var btn = Instantiate(Resources.Load<DevButton>("UI/DevButton"));
@@ -269,10 +279,13 @@ namespace KZ {
             btn.transform.localScale = Vector3.one;
             Canvas.ForceUpdateCanvases();
             parent.sizeDelta = parent.sizeDelta.SetY(instance._grid.preferredHeight);
+            _devButtons.Add(btn);
             return btn;
         }
 
         static void InitializeButtons() {
+            foreach (var btn in _devButtons) Destroy(btn.gameObject);
+            _devButtons.Clear();
             AddButton(x => Clear(), "Clear log");
         }
         #endregion
