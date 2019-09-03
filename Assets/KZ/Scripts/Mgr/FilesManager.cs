@@ -16,7 +16,7 @@ namespace KZ {
         #region PATHS
         public static string path = GetPath_GameFiles();
 
-        public static readonly char SEPARATOR = Path.PathSeparator; 
+        public static readonly char SEPARATOR = Path.DirectorySeparatorChar; 
 
         public static string GetPath_GameFiles() {
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -429,8 +429,8 @@ namespace KZ {
         #region KZ_SETTINGS
         public static Dictionary<string, string> LoadKZSettings() {
             var r = new Dictionary<string, string>();
-
             var ls = LoadTextFile("KZ_Settings.txt");
+            Debug.Log("Reading file: \"" + path + "KZ_Settings.txt\"");
             for (int i = 0; i < ls.Count; i++) {
                 var l = ls[i];
                 if (!l.StartsWith("//")) {

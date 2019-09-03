@@ -22,6 +22,7 @@ namespace KZ {
                 Input.GetAxis("Mouse Y") * MouseSensivity
             );
         }
+
         // normalized positions (0 - 1, 0 - 1)
         public static Vector2 GetMousePosition() {
             var r = Input.mousePosition;
@@ -30,7 +31,6 @@ namespace KZ {
         public static bool GetInput(string cmd) {
             return cmds.ContainsKey(cmd) ? cmds[cmd].Any(inpObj => inpObj.GetInput()) : false;
         }
-
 
         //Handle Inputs
         public static void AssignKey(string commandName, KeyCode key, InputType inputType = InputType.Down) {
@@ -69,6 +69,7 @@ namespace KZ {
         }
         
 
+
         public static void AssignInput(string commandName, IInputObject inpObj) {
             if (!cmds.ContainsKey(commandName))
                 cmds[commandName] = new List<IInputObject>();
@@ -85,6 +86,7 @@ namespace KZ {
         public static void ResetAllKeys() {
             cmds = new Dictionary<string, List<IInputObject>>();
         }
+
 
         public static void OnNextKeyPressed(Action<KeyCode> OnKeyDown) {
             KeyCode k = default(KeyCode);
@@ -105,6 +107,29 @@ namespace KZ {
                 { InputType.Hold , Input.GetKey},
                 { InputType.Up , Input.GetKeyUp}
             };
+
+
+        #region Joystick
+        static Dictionary<string, IInputObjectJoystick> _joysticks = new Dictionary<string, IInputObjectJoystick>();
+
+        public static void AssignJoystick(string joystickName, IInputObjectJoystick uiJoystick) {
+            if (!_joysticks.ContainsKey(joystickName))
+                _joysticks[joystickName] = uiJoystick;
+            else
+                Debug.LogWarning("error trying to add a new joystick \"" + joystickName + "\", key already contained");
+        }
+        public static void RemoveJoystick(IInputObjectJoystick uiJoystick) {
+            var name = uiJoystick.GetJoystickName();
+            if (_joysticks.ContainsKey(name))
+                _joysticks.Remove(name);
+        }
+        public static Vector2 GetJoystickInput(string joystickName) {
+            if (_joysticks.ContainsKey(joystickName))
+                return _joysticks[joystickName].GetInput();
+            else
+                return Vector2.zero;
+        }
+        #endregion
     }
 
     public enum InputType { Hold, Down, Up }
@@ -133,5 +158,10 @@ namespace KZ {
             _type = type;
             _preKeys = preKeys;
         }
+    }
+
+    public interface IInputObjectJoystick {
+        string GetJoystickName();
+        Vector2 GetInput();
     }
 }

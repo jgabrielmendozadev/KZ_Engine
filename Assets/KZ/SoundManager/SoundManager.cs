@@ -11,9 +11,9 @@ namespace KZ.Audio {
         const string AUDIO_EMITTER_PATH = "Audio/AudioEmitter";
         [RuntimeInitializeOnLoadMethod]
         static void Initialize() {
-            _n = new GameObject().AddComponent<SoundManager_CoroutineHandler>();
-            _parent = _n.transform;
-            Object.DontDestroyOnLoad(_n);
+            _instance = new GameObject().AddComponent<SoundManager_CoroutineHandler>();
+            _parent = _instance.transform;
+            Object.DontDestroyOnLoad(_instance);
             _parent.name = "SoundManager";
 
             //MIXER
@@ -49,13 +49,15 @@ namespace KZ.Audio {
             _SFX.clip = null;
             _BGM.clip = null;
             _VOICE.clip = null;
-            _n.StopAllCoroutines();
-            _n.StartCoroutine(CR_PoolHandler());
+            _instance.StopAllCoroutines();
+            _instance.StartCoroutine(CR_PoolHandler());
+            Debug.Log("soundmanager onReset");
+            DevConsole.AddButton(delegate { }, "button 2");
         }
 
 
         static UnityEngine.Audio.AudioMixer _mixer;
-        static SoundManager_CoroutineHandler _n;
+        static SoundManager_CoroutineHandler _instance;
         static Transform _parent;
         static AudioSource _SFX, _BGM, _VOICE;
 
@@ -66,7 +68,7 @@ namespace KZ.Audio {
         }
         public static void SFX_Play(AudioClip audioClip, Action onLoopPointReached) {
             _SFX.PlayOneShot(audioClip);
-            _n.StartCoroutine(CR_ExecuteInSeconds(audioClip.length, onLoopPointReached));
+            _instance.StartCoroutine(CR_ExecuteInSeconds(audioClip.length, onLoopPointReached));
         }
         public static void SFX_Play(AudioClip audioClip, Vector3 position) {
             //PoolManager.GetObject<AudioEmitter>("AudioEmitters")
@@ -75,7 +77,7 @@ namespace KZ.Audio {
         public static void SFX_Play(AudioClip audioClip, Vector3 position, Action onLoopPointReached) {
             //PoolManager.GetObject<AudioEmitter>("AudioEmitters")
             GetEmitter().SetValues(position, audioClip, _SFX.outputAudioMixerGroup);
-            _n.StartCoroutine(CR_ExecuteInSeconds(audioClip.length, onLoopPointReached));
+            _instance.StartCoroutine(CR_ExecuteInSeconds(audioClip.length, onLoopPointReached));
         }
         #endregion
 
@@ -94,7 +96,7 @@ namespace KZ.Audio {
             _BGM.clip = clip;
             _BGM.loop = useLoop;
             _BGM.Play();
-            _n.StartCoroutine(CR_ExecuteInSeconds(clip.length, onLoopPointReached));
+            _instance.StartCoroutine(CR_ExecuteInSeconds(clip.length, onLoopPointReached));
         }
 
         /// <summary>Pause/Unpause</summary>
@@ -123,7 +125,7 @@ namespace KZ.Audio {
         public static void BGM_CrossFadeTo(AudioClip newAudioClip, float crossFadeTime, Action onFinished, bool useLoop = false) {
             if (_auxBgm != null)
                 Object.Destroy(_auxBgm.gameObject);
-            _n.StopAllCoroutines();
+            _instance.StopAllCoroutines();
 
             _auxBgm = _BGM;
 
@@ -139,7 +141,7 @@ namespace KZ.Audio {
 
             _BGM = b;
 
-            _n.StartCoroutine(CR_CrossFade(_auxBgm, _BGM, crossFadeTime, onFinished));
+            _instance.StartCoroutine(CR_CrossFade(_auxBgm, _BGM, crossFadeTime, onFinished));
         }
 
         static AudioSource _auxBgm;
@@ -168,14 +170,14 @@ namespace KZ.Audio {
         }
         public static void VOICE_Play(AudioClip clip, Action onLoopPointReached) {
             _VOICE.PlayOneShot(clip);
-            _n.StartCoroutine(CR_ExecuteInSeconds(clip.length, onLoopPointReached));
+            _instance.StartCoroutine(CR_ExecuteInSeconds(clip.length, onLoopPointReached));
         }
         public static void VOICE_Play(AudioClip clip, Vector3 pos) {
             GetEmitter().SetValues(pos, clip, _VOICE.outputAudioMixerGroup);
         }
         public static void VOICE_Play(AudioClip clip, Vector3 pos, Action onLoopPointReached) {
             GetEmitter().SetValues(pos, clip, _VOICE.outputAudioMixerGroup);
-            _n.StartCoroutine(CR_ExecuteInSeconds(clip.length, onLoopPointReached));
+            _instance.StartCoroutine(CR_ExecuteInSeconds(clip.length, onLoopPointReached));
         }
         #endregion
 

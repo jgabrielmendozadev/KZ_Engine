@@ -9,8 +9,7 @@ using KZ;
 
 public static class KZ_Settings {
 
-    [RuntimeInitializeOnLoadMethod]
-    static void Initialize() {
+    public static void Initialize() {
         _KZSettings = FilesManager.LoadKZSettings();
     }
     

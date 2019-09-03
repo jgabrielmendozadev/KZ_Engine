@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
 namespace KZ {
     public class DevConsole : MonoBehaviour {
@@ -40,18 +38,16 @@ namespace KZ {
                 InputManager.RemoveKey("Execute", KeyCode.KeypadEnter);
             };
 
-            //UNITY DEBUG LOG
-            Application.logMessageReceived += PrintLog;
-
+            Application.logMessageReceived += PrintLog; //UNITY DEBUG LOG
             CloseConsole();
-        }
-        private void Start() {
-            if (!KZ_Settings.GetValue<bool>("useDevConsole", false))
-                Destroy(gameObject);
         }
         private void Update() {
             if (InputManager.GetInput("ToggleConsole")) ToggleConsole();
             if (InputManager.GetInput("Execute")) Execute();
+        }
+        private void OnDestroy() {
+            Application.logMessageReceived -= PrintLog;
+            LoadScene.OnResetApp -= CloseConsole;
         }
 
         //STATIC
@@ -67,16 +63,20 @@ namespace KZ {
         static Dictionary<string, ConsoleCommand> _allCommands = new Dictionary<string, ConsoleCommand>();
         public static event Action OnOpenConsole = delegate { };
         public static event Action OnCloseConsole = delegate { };
+        
+        public static void Initialize() {
+            if (instance) {
+                InitializeButtons();
+                return;
+            }
+            if (!KZ_Settings.GetValue("useDevConsole", false)) return;
 
-        [RuntimeInitializeOnLoadMethod]
-        static void SpawnOnGameInit() {
             var dc = Instantiate(Resources.Load<DevConsole>("UI/DevConsole"));
             DontDestroyOnLoad(dc.gameObject);
-            LoadScene.OnResetApp += InitializeButtons;
+            LoadScene.OnResetApp += CloseConsole;
+            InitializeButtons();
         }
-        private void OnDestroy() {
-            LoadScene.OnResetApp -= InitializeButtons;
-        }
+        
 
         #region SINGLETON
         static DevConsole instance;
@@ -97,9 +97,6 @@ namespace KZ {
             Write("·" + text);
         }
         public static void Log(string text, Color color) {
-            //instance._txtOutput.text += "\n·" + text.Colorize(color);
-            //LimitLines();
-            //FixLogHeight();
             Write("·" + text.Colorize(color));
         }
         static void LimitLines() {
@@ -119,13 +116,11 @@ namespace KZ {
         //CONSOLE
         #region COMMAND HANDLING
         public static void RemoveCommand(string commandName) {
-            //string cmd = commandName.ToUpper();
             string cmd = commandName;
             _allCommands.Remove(cmd);
         }
         //no params
         public static void AssignCommand(string commandName, Action command, string helpText = "") {
-            //string cmd = commandName.ToUpper();
             string cmd = commandName;
             if (_allCommands.ContainsKey(cmd))
                 Debug.Log("command already contained: " + cmd);
@@ -135,7 +130,6 @@ namespace KZ {
         }
         //int
         public static void AssignCommand(string commandName, Action<int> command, string helpText = "") {
-            //string cmd = commandName.ToUpper();
             string cmd = commandName;
             if (_allCommands.ContainsKey(cmd))
                 Debug.Log("command already contained: " + cmd);
@@ -153,13 +147,11 @@ namespace KZ {
         }
         //string
         public static void AssignCommand(string commandName, Action<string> command, string helpText = "") {
-            //string cmd = commandName.ToUpper();
             string cmd = commandName;
             if (_allCommands.ContainsKey(cmd))
                 Debug.Log("command already contained: " + cmd);
-            else {
+            else
                 _allCommands[cmd] = new ConsoleCommand(command, helpText);
-            }
         }
         #endregion
 
@@ -200,19 +192,21 @@ namespace KZ {
         }
 
         public static void ToggleConsole() {
-            if (_isOpen = !_isOpen)
-                OpenConsole();
-            else
+            if (_isOpen)
                 CloseConsole();
+            else
+                OpenConsole();
         }
 
         public static void OpenConsole() {
+            _isOpen = true;
             instance._goConsole.SetActive(true);
             instance._inpCommand.text = "";
             SelectInputField();
             OnOpenConsole();
         }
         public static void CloseConsole() {
+            _isOpen = false;
             instance._goConsole.SetActive(false);
             instance._inpCommand.text = "";
             OnCloseConsole();
@@ -245,7 +239,7 @@ namespace KZ {
         #endregion
 
         #region UNITY CONSOLE LOG
-        static void PrintLog(string condition, string stackTrace, LogType type) {
+        public static void PrintLog(string condition, string stackTrace, LogType type) {
             //add new line
             var c = _logColors[type];
             string s = "█".Colorize(c)
@@ -256,12 +250,12 @@ namespace KZ {
         }
 
         static readonly Dictionary<LogType, Color> _logColors = new Dictionary<LogType, Color>() {
-        {LogType.Exception, Color.red},
-        {LogType.Error,     Color.red},
-        {LogType.Warning,   Color.yellow},
-        {LogType.Assert,    Color.yellow},
-        {LogType.Log,       new Color(192f/255f, 192f/255f, 192f/255f, 1)}
-    };
+            {LogType.Exception, Color.red},
+            {LogType.Error,     Color.red},
+            {LogType.Warning,   Color.yellow},
+            {LogType.Assert,    Color.yellow},
+            {LogType.Log,       new Color(192f/255f, 192f/255f, 192f/255f, 1)}
+        };
         #endregion
 
 
