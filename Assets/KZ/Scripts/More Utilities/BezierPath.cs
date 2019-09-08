@@ -7,9 +7,9 @@ using UnityEngine;
 //TODO: make static class
 public class BezierPath : MonoBehaviour {
 
-    
 
-    [SerializeField] Transform[] bezierPoints;
+
+    [SerializeField] Transform[] bezierPoints = null;
     public float minDifference = 0.01f;
     [Range(0, 1)] public float p;
 
@@ -85,6 +85,16 @@ public class BezierPath : MonoBehaviour {
     }
 
 
+
+    class Segment {
+        public Vector3 a, b;
+        public Segment(Vector3 a, Vector3 b) { this.a = a; this.b = b; }
+        public Vector3 GetLerp(float value) {
+            return BezierPath.lerp(a, b, value);
+        }
+    }
+
+
 #if UNITY_EDITOR
     [Header("debug")]
     public int divisions = 2;
@@ -114,12 +124,3 @@ public class BezierPath : MonoBehaviour {
 
 
 
-
-
-class Segment {
-    public Vector3 a, b;
-    public Segment(Vector3 a, Vector3 b) { this.a = a; this.b = b; }
-    public Vector3 GetLerp(float value) {
-        return BezierPath.lerp(a, b, value);
-    }
-}

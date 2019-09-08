@@ -26,7 +26,7 @@ namespace KZ.Keyboard {
         void PlayKeySound() { KZ.Audio.SoundManager.SFX_Play(sfx_click); }
 
         [SerializeField] AudioClip sfx_click = null;
-        [SerializeField] List<KeyboardKey> _keys;
+        [SerializeField] List<KeyboardKey> _keys = new List<KeyboardKey>();
 
         void Awake_Keys() {
             foreach (var key in _keys)
@@ -46,7 +46,7 @@ namespace KZ.Keyboard {
             fadeDuration = 0.1f,
         };
         [SerializeField] Color _textColor = Color.black;
-        [SerializeField] Font _font;
+        [SerializeField] Font _font = null;
 
 
         private void OnValidate() {

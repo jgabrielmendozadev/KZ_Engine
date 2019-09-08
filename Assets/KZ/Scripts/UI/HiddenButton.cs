@@ -1,14 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-
+using UnityEngine.Events;
 
 [RequireComponent(typeof(RawImage))]
-public class HiddenButton : MonoBehaviour,IPointerDownHandler {
+public class HiddenButton : MonoBehaviour, IPointerDownHandler {
 
-    [SerializeField] int clicksToActivate;
-    [SerializeField] float timeLimit;
-    [SerializeField] UnityEngine.Events.UnityEvent OnActivate;
+    [SerializeField] int clicksToActivate = 3;
+    [SerializeField] float timeLimit = 2;
+    [SerializeField] UnityEvent OnActivate = new UnityEvent();
 
     float timeWhenReset = -1;
     int _clicks = 0;

@@ -37,7 +37,7 @@ namespace KZ {
 
 #if UNITY_EDITOR
         [RuntimeInitializeOnLoadMethod]
-        void InitializeGame() {
+        static void InitializeGame() {
             SceneManager.LoadScene(0);
         }
 #endif

@@ -51,8 +51,6 @@ namespace KZ.Audio {
             _VOICE.clip = null;
             _instance.StopAllCoroutines();
             _instance.StartCoroutine(CR_PoolHandler());
-            Debug.Log("soundmanager onReset");
-            DevConsole.AddButton(delegate { }, "button 2");
         }
 
 

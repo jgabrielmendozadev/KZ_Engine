@@ -1,16 +1,12 @@
-﻿using System;
-using System.Linq;
-using System.Collections;
+﻿using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
-using Random = UnityEngine.Random;
 using KZ;
 
 public class FsmScriptCreator : MonoBehaviour {
 
 
-    [SerializeField] List<string> stateNames;
+    [SerializeField] List<string> stateNames = new List<string>();
     [TextArea(10, 100)]
     public string OUTPUT;
 

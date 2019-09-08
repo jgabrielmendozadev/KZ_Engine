@@ -14,7 +14,7 @@ namespace KZ {
 
 
         [SerializeField] string _commandName = "";
-        [SerializeField] InputType _type;
+        [SerializeField] InputType _type = InputType.Down;
         bool _inputState;
 
         void Start() {

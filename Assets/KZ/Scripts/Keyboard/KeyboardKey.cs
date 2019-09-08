@@ -13,20 +13,20 @@ namespace KZ.Keyboard {
 
         [Space(10, order = 0)]
         [Header("References", order = 1)]
-        [SerializeField] Image _imgBack;
-        [SerializeField] Text _txtTitle;
+        //[SerializeField] Image _imgBack = null;
+        [SerializeField] Text _txtTitle = null;
 
 
-        [Header("Settings")]
-        [SerializeField] KeyType _keyType;
         public enum KeyType { letter, special }
-        [SerializeField] string _title;
+        [Header("Settings")]
+        [SerializeField] KeyType _keyType = KeyType.letter;
+        [SerializeField] string _title = "";
         [SerializeField] int _textSize = 30;
 
         //if letter
-        [SerializeField] string _textToAdd;
+        [SerializeField] string _textToAdd = "";
         //if special
-        [SerializeField] SpecialKeyboardKey _specialKey;
+        [SerializeField] SpecialKeyboardKey _specialKey = SpecialKeyboardKey.Backspace;
 
 
 

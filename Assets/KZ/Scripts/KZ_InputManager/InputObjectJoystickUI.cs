@@ -1,9 +1,13 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
 namespace KZ {
-    public class InputObjectJoystickUI : MonoBehaviour, IInputObjectJoystick , IPointerDownHandler {
+    public class InputObjectJoystickUI : MonoBehaviour, IInputObjectJoystick
+         , IEndDragHandler, IDragHandler
+         , IPointerDownHandler, IPointerUpHandler  
+        {
 
         #region IInputObjectJoystick Implementation
         public Vector2 GetInput() { return currentValue; }
@@ -11,57 +15,84 @@ namespace KZ {
         #endregion
 
 
-        [SerializeField] RectTransform thisGraphic;
+        [SerializeField] RectTransform thisGraphic = null;
         [Header("InputObject")]
         [SerializeField] string _joystickName = "";
         [SerializeField] Vector2 currentValue = Vector2.zero;
         [Header("Graphics")]
-        [SerializeField] RectTransform inputGraphic;
+        [SerializeField] RectTransform inputGraphic = null;
 
         
-       
-
-
         void Start() {
-            _state = State_Idle;
+            rtCanvas = GetComponentInParent<Canvas>().GetComponent<RectTransform>();
             InputManager.AssignJoystick(_joystickName, this);
         }
-        void Update() {
-            _state();
-        }
+
         void OnDestroy() {
             InputManager.RemoveJoystick(this);
         }
 
+        bool usingThis = false;
+        RectTransform rtCanvas;
+       
+        void EndValue() {
+            currentValue = Vector2.zero;
+            inputGraphic.localPosition = Vector3.zero;
+        }
 
-        Action _state = delegate { };
 
-        void State_Idle() { }
-        void State_Hold() {
-            if (!Input.GetKey(KeyCode.Mouse0)) {
-                currentValue = Vector2.zero;
-                _state = State_Idle;
-                inputGraphic.localPosition = Vector3.zero;
+        //BEGIN
+        public void OnPointerDown(PointerEventData e) {
+            usingThis = true;
+            UpdateWithId(e.pointerId);
+        }
+        //UPDATE VALUE
+        public void OnDrag(PointerEventData e) {
+            if (usingThis) UpdateWithId(e.pointerId);
+        }
+        //END
+        public void OnEndDrag(PointerEventData e) {
+            usingThis = false;
+            EndValue();
+        }
+        //END
+        public void OnPointerUp(PointerEventData e) {
+            usingThis = false;
+            EndValue();
+        }
+
+
+        void UpdateWithId(int id) {
+            if (id == -1) {
+                UpdateValue(InputManager.GetMousePosition());
+                return;
             }
             else {
-                var mousePos = Input.mousePosition;
-                var dir1 = (mousePos - transform.position);
-                var dir2 = dir1.normalized;
-                var value = thisGraphic.sizeDelta.x / 2;
-
-                if (dir1.magnitude > value)
-                    dir1 = dir2 * value;
-
-                inputGraphic.localPosition = dir1;
-                currentValue = dir1 / value;
+                foreach (var t in Input.touches) {
+                    if (t.fingerId == id) {
+                        UpdateValue(new Vector3() {
+                            x = (t.position.x / Screen.width).Clamp(),
+                            y = (t.position.y / Screen.height).Clamp()
+                        });
+                        return;
+                    }
+                }
             }
+            Debug.LogWarning("error reading mouse position");
         }
 
+        void UpdateValue(Vector3 mousePos) {
+            mousePos.x *= rtCanvas.sizeDelta.x * thisGraphic.lossyScale.x;
+            mousePos.y *= rtCanvas.sizeDelta.y * thisGraphic.lossyScale.y;
 
-        public void OnPointerDown(PointerEventData e) {
-            _state = State_Hold;
+            var radius = thisGraphic.sizeDelta.x * thisGraphic.lossyScale.x * 0.5f;
+            var dir = Vector3.ClampMagnitude(mousePos - thisGraphic.position, radius);
+
+            inputGraphic.position = thisGraphic.position + dir;
+
+            currentValue = dir / radius;
         }
-
+        
     }
 
     

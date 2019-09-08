@@ -1,16 +1,18 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
-[RequireComponent(typeof(UnityEngine.UI.Text))]
+[RequireComponent(typeof(Text))]
 public class LocalizableText : MonoBehaviour {
 
-    [SerializeField] UnityEngine.UI.Text txt;
-    [SerializeField] string title;
+    Text txt;
+    [SerializeField] string textID = "";
 
-    //void Start() { GetText(); }
 
-    public void SetText(string s) { txt.text = s; }
+    public void SetText() {
+        txt = GetComponent<Text>();
+        txt.text = LocalizationManager.GetInstance().GetText(textID);
+    }
 
-    public void GetText() { SetText(LocalizationManager.GetInstance().GetText(title)); }
-
-    private void OnEnable() { GetText(); }
+    private void OnEnable() => SetText();
+    
 }

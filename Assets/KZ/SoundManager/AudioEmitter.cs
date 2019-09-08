@@ -7,7 +7,7 @@ namespace KZ.Audio {
 
         public event System.Action<AudioEmitter> OnFinishedAudio = delegate { };
 
-        [SerializeField] AudioSource myAudioSource;
+        [SerializeField] AudioSource myAudioSource = null;
         public AudioSource GetAudioSource() { return myAudioSource; }
 
         public AudioEmitter SetValues(Vector3 position, AudioClip clip, AudioMixerGroup mixerGroup = null) {

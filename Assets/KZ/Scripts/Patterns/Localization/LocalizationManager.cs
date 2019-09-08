@@ -9,10 +9,11 @@ using System.IO;
 
 public class LocalizationManager {
 
-    static LocalizationManager instance;
+    static LocalizationManager _instance;
+    
     public static LocalizationManager GetInstance() {
-        if (instance == null) instance = new LocalizationManager();
-        return instance;
+        if (_instance == null) _instance = new LocalizationManager();
+        return _instance;
     }
     string _fileName = "localizationData.json";
     Dictionary<UserLanguage, Dictionary<string, string>> _texts;
@@ -62,7 +63,7 @@ public class LocalizationManager {
     public void ChangeLanguage (UserLanguage lang) {
         _currentLanguage = lang;
         var objs = UnityEngine.Object.FindObjectsOfType<LocalizableText>();
-        for (int i = objs.Length - 1; i >= 0; i--) objs[i].GetText();
+        for (int i = objs.Length - 1; i >= 0; i--) objs[i].SetText();
     }
 
     public string GetText(string title) {
