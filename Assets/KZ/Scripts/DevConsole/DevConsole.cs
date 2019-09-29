@@ -18,6 +18,12 @@ namespace KZ {
         [SerializeField] RectTransform _containerDevButtons = null;
         [SerializeField] GridLayoutGroup _grid = null;
 
+#if !UNITY_EDITOR && UNITY_ANDROID
+        const KeyCode KeyOpenConsole = KeyCode.Escape;
+#else
+        const KeyCode KeyOpenConsole = KeyCode.F1;
+#endif
+
         private void Awake() {
             Awake_Singleton();
 
@@ -28,11 +34,7 @@ namespace KZ {
             AssignCommand("exit", Exit, "Quits the game");
 
             //INPUTS
-#if !UNITY_EDITOR && UNITY_ANDROID
-            InputManager.AssignKey("ToggleConsole", KeyCode.Escape);
-#else
-            InputManager.AssignKey("ToggleConsole", KeyCode.F1);
-#endif
+            InputManager.AssignKey("ToggleConsole", KeyOpenConsole);
 
             OnOpenConsole += () => {
                 InputManager.AssignKey("Execute", KeyCode.Return);
@@ -53,6 +55,9 @@ namespace KZ {
         private void OnDestroy() {
             Application.logMessageReceived -= PrintLog;
             LoadScene.OnResetApp -= CloseConsole;
+            InputManager.RemoveKey("ToggleConsole", KeyCode.F1);
+            InputManager.RemoveKey("Execute", KeyCode.Return);
+            InputManager.RemoveKey("Execute", KeyCode.KeypadEnter);
         }
         public void ExecuteCommand() { Execute(); }
 
@@ -71,9 +76,9 @@ namespace KZ {
         static Dictionary<string, ConsoleCommand> _allCommands = new Dictionary<string, ConsoleCommand>();
         public static event Action OnOpenConsole = delegate { };
         public static event Action OnCloseConsole = delegate { };
-        
+
         public static void Initialize() {
-            if (!KZ_Settings.GetValue("useDevConsole", false)) return;
+            if (!KZ_Settings.GetValue("useDevConsole", true)) return;
             if (instance) {
                 InitializeButtons();
                 return;
@@ -83,18 +88,18 @@ namespace KZ {
             LoadScene.OnResetApp += CloseConsole;
             InitializeButtons();
         }
-        
 
-#region SINGLETON
-        static DevConsole instance;
+
+        #region SINGLETON
+        static DevConsole instance = null;
         void Awake_Singleton() {
             if (instance != null)
                 Destroy(gameObject); //Destroy new, keep old
             instance = this;
         }
-#endregion
+        #endregion
 
-#region LOGGER
+        #region LOGGER
         static void Write(string text) {
             instance._txtOutput.text += "\n" + text;
             LimitLines();
@@ -117,11 +122,11 @@ namespace KZ {
             var height = instance._txtOutput.preferredHeight;
             instance._rectContent.sizeDelta = instance._rectContent.sizeDelta.SetY(height);
         }
-#endregion
+        #endregion
 
 
         //CONSOLE
-#region COMMAND HANDLING
+        #region COMMAND HANDLING
         public static void RemoveCommand(string commandName) {
             string cmd = commandName;
             _allCommands.Remove(cmd);
@@ -160,9 +165,9 @@ namespace KZ {
             else
                 _allCommands[cmd] = new ConsoleCommand(command, helpText);
         }
-#endregion
+        #endregion
 
-#region DEVELOPER CONSOLE HANDLING
+        #region DEVELOPER CONSOLE HANDLING
         public static void Execute() {
             if (!_isOpen) return;
 
@@ -223,9 +228,9 @@ namespace KZ {
             UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
             UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(instance._inpCommand.gameObject);
         }
-#endregion
+        #endregion
 
-#region BASIC COMMANDS
+        #region BASIC COMMANDS
         static void Help() {
             var max = _allCommands.Keys.Max(k => k.Length) + 1;
             string s = "Commands are not case sensitive. Possible Commands:\n"
@@ -243,9 +248,9 @@ namespace KZ {
 #endif
             Application.Quit();
         }
-#endregion
+        #endregion
 
-#region UNITY CONSOLE LOG
+        #region UNITY CONSOLE LOG
         public static void PrintLog(string condition, string stackTrace, LogType type) {
             //add new line
             var c = _logColors[type];
@@ -263,11 +268,11 @@ namespace KZ {
             {LogType.Assert,    Color.yellow},
             {LogType.Log,       new Color(192f/255f, 192f/255f, 192f/255f, 1)}
         };
-#endregion
+        #endregion
 
 
         //ACTIONS
-#region BUTTON HANDLING
+        #region BUTTON HANDLING
         static List<DevButton> _devButtons = new List<DevButton>();
 
         public static DevButton AddButton(Action<DevButton> onClick, string defaultTitle = "button") {
@@ -289,7 +294,7 @@ namespace KZ {
             _devButtons.Clear();
             AddButton(x => Clear(), "Clear log");
         }
-#endregion
+        #endregion
 
         //Button commands
         public void BtnClear() { Clear(); }

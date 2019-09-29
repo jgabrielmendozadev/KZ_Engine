@@ -18,7 +18,7 @@ namespace KZ {
         [SerializeField] RectTransform thisGraphic = null;
         [Header("InputObject")]
         [SerializeField] string _joystickName = "";
-        [SerializeField] Vector2 currentValue = Vector2.zero;
+        Vector2 currentValue = Vector2.zero;
         [Header("Graphics")]
         [SerializeField] RectTransform inputGraphic = null;
 
@@ -70,10 +70,9 @@ namespace KZ {
             else {
                 foreach (var t in Input.touches) {
                     if (t.fingerId == id) {
-                        UpdateValue(new Vector3() {
-                            x = (t.position.x / Screen.width).Clamp(),
-                            y = (t.position.y / Screen.height).Clamp()
-                        });
+                        UpdateValue(
+                            (t.position.x / Screen.width).Clamp(),
+                            (t.position.y / Screen.height).Clamp());
                         return;
                     }
                 }
@@ -81,6 +80,12 @@ namespace KZ {
             Debug.LogWarning("error reading mouse position");
         }
 
+        Vector3 mousePos = Vector3.zero;
+        void UpdateValue(float x, float y) {
+            mousePos.x = x;
+            mousePos.y = y;
+            UpdateValue(mousePos);
+        }
         void UpdateValue(Vector3 mousePos) {
             mousePos.x *= rtCanvas.sizeDelta.x * thisGraphic.lossyScale.x;
             mousePos.y *= rtCanvas.sizeDelta.y * thisGraphic.lossyScale.y;
