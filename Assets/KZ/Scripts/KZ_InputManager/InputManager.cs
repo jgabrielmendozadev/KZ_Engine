@@ -23,7 +23,7 @@ namespace KZ {
             );
         }
 
-        // normalized positions (0 - 1, 0 - 1)
+        /// <summary>normalized positions (0 - 1, 0 - 1)</summary>
         public static Vector2 GetMousePosition() {
             var r = Input.mousePosition;
             return new Vector2((r.x / Screen.width).Clamp(), (r.y / Screen.height).Clamp());
@@ -130,6 +130,30 @@ namespace KZ {
                 return Vector2.zero;
         }
         #endregion
+
+
+
+        #region DragUI
+        static Dictionary<string, IInputObjectUIDrag> _UIDrags = new Dictionary<string, IInputObjectUIDrag>();
+
+        public static void AssignInputDragUI(string uiDragName, IInputObjectUIDrag uiInputDrag) {
+            if (!_UIDrags.ContainsKey(uiDragName))
+                _UIDrags[uiDragName] = uiInputDrag;
+            else
+                Debug.LogWarning("error trying to add a new Input Drag UI object \"" + uiDragName + "\", key already contained");
+        }
+        public static void RemoveInputDragUI(IInputObjectUIDrag uiInputDrag) {
+            var name = uiInputDrag.GetUIDragName();
+            if (_UIDrags.ContainsKey(name))
+                _UIDrags.Remove(name);
+        }
+        public static Vector2 GetUIDragInput(string UIInputDrag) {
+            if (_UIDrags.ContainsKey(UIInputDrag))
+                return _UIDrags[UIInputDrag].GetDeltaPosition();
+            else
+                return Vector2.zero;
+        }
+        #endregion
     }
 
     public enum InputType { Hold, Down, Up }
@@ -163,5 +187,10 @@ namespace KZ {
     public interface IInputObjectJoystick {
         string GetJoystickName();
         Vector2 GetInput();
+    }
+
+    public interface IInputObjectUIDrag {
+        string GetUIDragName();
+        Vector2 GetDeltaPosition();
     }
 }

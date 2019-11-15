@@ -78,7 +78,10 @@ namespace KZ {
         public static event Action OnCloseConsole = delegate { };
 
         public static void Initialize() {
-            if (!KZ_Settings.GetValue("useDevConsole", true)) return;
+            if (!KZ_Settings.GetValue("useDevConsole", true)) {
+                Debug.Log("not using devConsole");
+                return;
+            }
             if (instance) {
                 InitializeButtons();
                 return;

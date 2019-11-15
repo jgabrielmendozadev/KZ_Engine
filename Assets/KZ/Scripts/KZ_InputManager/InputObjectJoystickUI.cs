@@ -27,7 +27,6 @@ namespace KZ {
             rtCanvas = GetComponentInParent<Canvas>().GetComponent<RectTransform>();
             InputManager.AssignJoystick(_joystickName, this);
         }
-
         void OnDestroy() {
             InputManager.RemoveJoystick(this);
         }
@@ -35,20 +34,15 @@ namespace KZ {
         bool usingThis = false;
         RectTransform rtCanvas;
        
-        void EndValue() {
-            currentValue = Vector2.zero;
-            inputGraphic.localPosition = Vector3.zero;
-        }
-
 
         //BEGIN
         public void OnPointerDown(PointerEventData e) {
             usingThis = true;
-            UpdateWithId(e.pointerId);
+            UpdateWithPosition(e.position);
         }
         //UPDATE VALUE
         public void OnDrag(PointerEventData e) {
-            if (usingThis) UpdateWithId(e.pointerId);
+            if (usingThis) UpdateWithPosition(e.position);
         }
         //END
         public void OnEndDrag(PointerEventData e) {
@@ -61,43 +55,23 @@ namespace KZ {
             EndValue();
         }
 
-
-        void UpdateWithId(int id) {
-            if (id == -1) {
-                UpdateValue(InputManager.GetMousePosition());
-                return;
-            }
-            else {
-                foreach (var t in Input.touches) {
-                    if (t.fingerId == id) {
-                        UpdateValue(
-                            (t.position.x / Screen.width).Clamp(),
-                            (t.position.y / Screen.height).Clamp());
-                        return;
-                    }
-                }
-            }
-            Debug.LogWarning("error reading mouse position");
-        }
-
-        Vector3 mousePos = Vector3.zero;
-        void UpdateValue(float x, float y) {
-            mousePos.x = x;
-            mousePos.y = y;
-            UpdateValue(mousePos);
-        }
-        void UpdateValue(Vector3 mousePos) {
-            mousePos.x *= rtCanvas.sizeDelta.x * thisGraphic.lossyScale.x;
-            mousePos.y *= rtCanvas.sizeDelta.y * thisGraphic.lossyScale.y;
+        void UpdateWithPosition(Vector2 position) {
+            Vector3 pos = position;
+            pos.x = (position.x / Screen.width) * rtCanvas.sizeDelta.x * thisGraphic.lossyScale.x;
+            pos.y = (position.y / Screen.height) * rtCanvas.sizeDelta.y * thisGraphic.lossyScale.y;
 
             var radius = thisGraphic.sizeDelta.x * thisGraphic.lossyScale.x * 0.5f;
-            var dir = Vector3.ClampMagnitude(mousePos - thisGraphic.position, radius);
+            var dir = Vector3.ClampMagnitude(pos - thisGraphic.position, radius);
 
             inputGraphic.position = thisGraphic.position + dir;
 
             currentValue = dir / radius;
         }
-        
+        void EndValue() {
+            currentValue = Vector2.zero;
+            inputGraphic.localPosition = Vector3.zero;
+        }
+
     }
 
     

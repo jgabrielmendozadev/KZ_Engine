@@ -30,7 +30,6 @@ public static class KZ_Settings {
                 return defaultValue;
             }
         }
-        Debug.LogWarning("key \"" + k + "\" not contained in settings, using default value \"" + defaultValue + "\"");
         
         return defaultValue;
     }

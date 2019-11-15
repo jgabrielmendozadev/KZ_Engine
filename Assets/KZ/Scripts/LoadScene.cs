@@ -36,9 +36,11 @@ namespace KZ {
         }
 
 #if UNITY_EDITOR
+        public static bool isInitialized = false;
         [RuntimeInitializeOnLoadMethod]
         static void InitializeGame() {
             SceneManager.LoadScene(0);
+            OnResetApp += () => isInitialized = true;
         }
 #endif
 
