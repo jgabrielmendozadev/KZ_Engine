@@ -19,7 +19,6 @@ namespace KZ {
         }
 
         static void InitializeGameSettings() {
-
             //Init KZ_SETTINGS (reading logs, to show them in the dev console)
             List<Action> logs = new List<Action>();
             Application.LogCallback onLogReceived = (c, s, t) => logs.Add(() => DevConsole.PrintLog(c, s, t));
@@ -31,16 +30,12 @@ namespace KZ {
             DevConsole.Initialize();
             if (KZ_Settings.GetValue("useDevConsole", false))
                 logs.ForEach(l => l());
-
-
         }
 
 #if UNITY_EDITOR
-        public static bool isInitialized = false;
         [RuntimeInitializeOnLoadMethod]
         static void InitializeGame() {
             SceneManager.LoadScene(0);
-            OnResetApp += () => isInitialized = true;
         }
 #endif
 
