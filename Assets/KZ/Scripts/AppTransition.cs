@@ -7,10 +7,12 @@ using UnityEngine.UI;
 namespace KZ {
     public class AppTransition : MonoBehaviour {
 
+        public static AppTransition instance;
         public static void Initialize() {
             var appTransition = Instantiate(Resources.Load<AppTransition>("UI/AppTransition"));
             DontDestroyOnLoad(appTransition.gameObject);
             LoadScene.OnResetApp += appTransition.Dispose;
+            instance = appTransition;
         }
 
         void Dispose() {
