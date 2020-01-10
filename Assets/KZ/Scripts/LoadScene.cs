@@ -8,12 +8,14 @@ namespace KZ {
     public class LoadScene : MonoBehaviour {
 
         private IEnumerator Start() {
+
             yield return new WaitForEndOfFrame(); // wait 1 frame, to render the images
 
-            InitializeGameSettings();
             OnResetApp();
+            InitializeGameSettings();
+            AppTransition.Initialize();
             DevConsole.AddButton(x => ResetApp(), "reset");
-            
+
             yield return new WaitForEndOfFrame();
             SceneManager.LoadScene(1); //load first game scene
         }

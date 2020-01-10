@@ -54,15 +54,21 @@ namespace KZ.StateMachine {
                 }
             }
         }
+
+        public void Update() => currentState.Update();       
     }
 
 
-    public abstract class State<T> {
+    public class State<T> {
+        public string name { get; private set; }
+        public State(string name = "") => this.name = name;
 
-        public abstract void Enter(T input);
-        public abstract void Update(T input);
-        public abstract void Exit(T input);
-
+        public event Action<T> OnEnter = delegate { };
+        public event Action<T> OnExit = delegate { };
+        public event Action OnUpdate = delegate { };
+        public virtual void Enter(T input) => OnEnter(input);
+        public virtual void Exit(T input) => OnExit(input);
+        public virtual void Update() => OnUpdate();
     }
 
 
