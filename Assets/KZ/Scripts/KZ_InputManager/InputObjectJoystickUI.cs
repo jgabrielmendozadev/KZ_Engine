@@ -10,20 +10,20 @@ namespace KZ {
         {
 
         #region IInputObjectJoystick Implementation
-        public Vector2 GetInput() { return currentValue; }
-        public string GetJoystickName() { return _joystickName; }
+        public Vector2 GetInput() => currentValue;
+        public string GetJoystickName() => _joystickName;
         #endregion
 
 
-        [SerializeField] RectTransform thisGraphic = null;
         [Header("InputObject")]
         [SerializeField] string _joystickName = "";
-        Vector2 currentValue = Vector2.zero;
+        protected Vector2 currentValue = Vector2.zero;
         [Header("Graphics")]
-        [SerializeField] RectTransform inputGraphic = null;
+        [SerializeField] protected RectTransform backGraphic = null;
+        [SerializeField] protected RectTransform inputGraphic = null;
 
         
-        void Start() {
+        protected virtual void Start() {
             rtCanvas = GetComponentInParent<Canvas>().GetComponent<RectTransform>();
             InputManager.AssignJoystick(_joystickName, this);
         }
@@ -32,17 +32,17 @@ namespace KZ {
         }
 
         bool usingThis = false;
-        RectTransform rtCanvas;
+        protected RectTransform rtCanvas;
        
 
         //BEGIN
         public void OnPointerDown(PointerEventData e) {
             usingThis = true;
-            UpdateWithPosition(e.position);
+            BeginValue(e.position);
         }
         //UPDATE VALUE
         public void OnDrag(PointerEventData e) {
-            if (usingThis) UpdateWithPosition(e.position);
+            if (usingThis) UpdateValue(e.position);
         }
         //END
         public void OnEndDrag(PointerEventData e) {
@@ -55,19 +55,23 @@ namespace KZ {
             EndValue();
         }
 
-        void UpdateWithPosition(Vector2 position) {
-            Vector3 pos = position;
-            pos.x = (position.x / Screen.width) * rtCanvas.sizeDelta.x * thisGraphic.lossyScale.x;
-            pos.y = (position.y / Screen.height) * rtCanvas.sizeDelta.y * thisGraphic.lossyScale.y;
 
-            var radius = thisGraphic.sizeDelta.x * thisGraphic.lossyScale.x * 0.5f;
-            var dir = Vector3.ClampMagnitude(pos - thisGraphic.position, radius);
+        protected virtual void BeginValue(Vector2 position) {
+            UpdateValue(position);
+        }
+        protected virtual void UpdateValue(Vector2 position) {
+            Vector3 pos = new Vector3();
+            pos.x = (position.x / Screen.width) * rtCanvas.sizeDelta.x * backGraphic.lossyScale.x;
+            pos.y = (position.y / Screen.height) * rtCanvas.sizeDelta.y * backGraphic.lossyScale.y;
 
-            inputGraphic.position = thisGraphic.position + dir;
+            var radius = backGraphic.sizeDelta.x * backGraphic.lossyScale.x * 0.5f;
+            var dir = Vector3.ClampMagnitude(pos - backGraphic.position, radius);
+
+            inputGraphic.position = backGraphic.position + dir;
 
             currentValue = dir / radius;
         }
-        void EndValue() {
+        protected virtual void EndValue() {
             currentValue = Vector2.zero;
             inputGraphic.localPosition = Vector3.zero;
         }
