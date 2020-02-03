@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using SceneManager = KZ.SceneManager;
 
 namespace KZ {
     public class LoadScene : MonoBehaviour {
@@ -17,7 +18,7 @@ namespace KZ {
             DevConsole.AddButton(x => ResetApp(), "reset");
 
             yield return new WaitForEndOfFrame();
-            SceneManager.LoadScene(1); //load first game scene
+            SceneManager.LoadIntroScene();
         }
 
         static void InitializeGameSettings() {
@@ -37,7 +38,7 @@ namespace KZ {
 #if UNITY_EDITOR
         [RuntimeInitializeOnLoadMethod]
         static void InitializeGame() {
-            SceneManager.LoadScene(0);
+            SceneManager.LoadSplashScene();
         }
 #endif
 
@@ -49,7 +50,7 @@ namespace KZ {
         //Loads this first scene
         public static void ResetApp() {
             Debug.Log("App reset");
-            SceneManager.LoadScene(0);
+            SceneManager.LoadSplashScene();
         }
 
     }

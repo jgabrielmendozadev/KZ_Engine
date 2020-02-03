@@ -37,9 +37,9 @@ public static class KZ_Settings {
 
     static readonly Dictionary<Type, Func<string, object, object>> _parsers =
         new Dictionary<Type, Func<string, object, object>>()
-        .AddReturn(typeof(int), (s, d) => { int x; return int.TryParse(s, out x) ? x : LogWarning_Parser(s, d); })
-        .AddReturn(typeof(bool), (s, d) => { bool x; return bool.TryParse(s, out x) ? x : LogWarning_Parser(s, d); })
-        .AddReturn(typeof(float), (s, d) => { float x; return float.TryParse(s, out x) ? x : LogWarning_Parser(s, d); })
+        .AddReturn(typeof(int), (s, d) => { return int.TryParse(s, out int x) ? x : LogWarning_Parser(s, d); })
+        .AddReturn(typeof(bool), (s, d) => { return bool.TryParse(s, out bool x) ? x : LogWarning_Parser(s, d); })
+        .AddReturn(typeof(float), (s, d) => { return float.TryParse(s, out float x) ? x : LogWarning_Parser(s, d); })
         .AddReturn(typeof(string), (s, d) => s);
 
     //utility to simplify lambdas in "_parsers"
