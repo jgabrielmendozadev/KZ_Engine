@@ -12,56 +12,59 @@ namespace KZ {
              , IPointerDownHandler, IPointerUpHandler {
 
 
-
         [SerializeField] string _dragName = "";
 
-        
         void Start() {
             InputManager.AssignInputDragUI(_dragName, this);
         }
         void LateUpdate() {
-            deltaPosition = Vector2.zero;
+            _deltaPosition = Vector2.zero;
         }
         void OnDestroy() {
             InputManager.RemoveInputDragUI(this);
         }
 
-        bool usingThis = false;
-        Vector2 deltaPosition = Vector2.zero;
-        Vector2 lastPosition = Vector2.zero;
+        Vector2 _deltaPosition = Vector2.zero;
+        Vector2 _lastPosition = Vector2.zero;
+        int _currentPointerId = -1;
 
         //BEGIN
         public void OnPointerDown(PointerEventData e) {
+            if (_currentPointerId != -1) return;
+            _currentPointerId = e.pointerId;
             DragBegin(e.position);
         }
         //UPDATE VALUE
         public void OnDrag(PointerEventData e) {
-            if (usingThis) DragUpdate(e.position);
+            if (_currentPointerId == e.pointerId)
+                DragUpdate(e.position);
         }
         //END
         public void OnEndDrag(PointerEventData e) {
-            DragEnd();
+            if (_currentPointerId == e.pointerId)
+                DragEnd();
         }
         //END 
         public void OnPointerUp(PointerEventData e) {
-            DragEnd();
-        }
-
-        void DragBegin(Vector2 position) {
-            usingThis = true;
-            lastPosition = position;
-        }
-        void DragUpdate(Vector2 position) {
-            deltaPosition = position - lastPosition;
-            deltaPosition.x /= Screen.width;
-            deltaPosition.y /= Screen.height;
-            lastPosition = position;
-        }
-        void DragEnd() {
-            usingThis = false;
-            deltaPosition = lastPosition = Vector2.zero;
+            if (_currentPointerId == e.pointerId)
+                DragEnd();
         }
         
+
+        void DragBegin(Vector2 position) {
+            _lastPosition = position;
+        }
+        void DragUpdate(Vector2 position) {
+            _deltaPosition = position - _lastPosition;
+            _deltaPosition.x /= Screen.width;
+            _deltaPosition.y /= Screen.height;
+            _lastPosition = position;
+        }
+        void DragEnd() {
+            _currentPointerId = -1;
+            _deltaPosition = _lastPosition = Vector2.zero;
+        }
+
 
 
         public string GetUIDragName() {
@@ -70,7 +73,7 @@ namespace KZ {
 
         public float sensivity = 50;
         public Vector2 GetDeltaPosition() {
-            return deltaPosition * sensivity;
+            return _deltaPosition * sensivity;
         }
     }
 }

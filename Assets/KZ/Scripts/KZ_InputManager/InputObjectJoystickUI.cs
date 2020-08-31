@@ -22,37 +22,39 @@ namespace KZ {
         [SerializeField] protected RectTransform backGraphic = null;
         [SerializeField] protected RectTransform inputGraphic = null;
 
-        
+
         protected virtual void Start() {
-            rtCanvas = GetComponentInParent<Canvas>().GetComponent<RectTransform>();
+            _rtCanvas = GetComponentInParent<Canvas>().GetComponent<RectTransform>();
             InputManager.AssignJoystick(_joystickName, this);
         }
         void OnDestroy() {
             InputManager.RemoveJoystick(this);
         }
 
-        bool usingThis = false;
-        protected RectTransform rtCanvas;
-       
+        protected RectTransform _rtCanvas;
+        int _currentPointerId = -1;
+        Vector3 _pos = new Vector3();
 
         //BEGIN
         public void OnPointerDown(PointerEventData e) {
-            usingThis = true;
+            if (_currentPointerId != -1) return;
+            _currentPointerId = e.pointerId;
             BeginValue(e.position);
         }
         //UPDATE VALUE
         public void OnDrag(PointerEventData e) {
-            if (usingThis) UpdateValue(e.position);
+            if (_currentPointerId == e.pointerId) 
+                UpdateValue(e.position);
         }
         //END
         public void OnEndDrag(PointerEventData e) {
-            usingThis = false;
-            EndValue();
+            if (_currentPointerId == e.pointerId)
+                EndValue();
         }
         //END
         public void OnPointerUp(PointerEventData e) {
-            usingThis = false;
-            EndValue();
+            if (_currentPointerId == e.pointerId)
+                EndValue();
         }
 
 
@@ -60,18 +62,18 @@ namespace KZ {
             UpdateValue(position);
         }
         protected virtual void UpdateValue(Vector2 position) {
-            Vector3 pos = new Vector3();
-            pos.x = (position.x / Screen.width) * rtCanvas.sizeDelta.x * backGraphic.lossyScale.x;
-            pos.y = (position.y / Screen.height) * rtCanvas.sizeDelta.y * backGraphic.lossyScale.y;
+            _pos.x = (position.x / Screen.width) * _rtCanvas.sizeDelta.x * backGraphic.lossyScale.x;
+            _pos.y = (position.y / Screen.height) * _rtCanvas.sizeDelta.y * backGraphic.lossyScale.y;
 
             var radius = backGraphic.sizeDelta.x * backGraphic.lossyScale.x * 0.5f;
-            var dir = Vector3.ClampMagnitude(pos - backGraphic.position, radius);
+            var dir = Vector3.ClampMagnitude(_pos - backGraphic.position, radius);
 
             inputGraphic.position = backGraphic.position + dir;
 
             currentValue = dir / radius;
         }
         protected virtual void EndValue() {
+            _currentPointerId = -1;
             currentValue = Vector2.zero;
             inputGraphic.localPosition = Vector3.zero;
         }

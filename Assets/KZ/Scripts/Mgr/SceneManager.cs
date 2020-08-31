@@ -32,7 +32,10 @@ namespace KZ {
         public static void LoadGameScene() => LoadScene(GAME);
 
         public static void LoadIntroScene() {
-            IntroAnim_KZ.Show(0, 0.5f, LoadGameScene);
+            if (KZ_Settings.GetValue("skipIntro", DefaultKZValues.skipIntro))
+                LoadGameScene();
+            else
+                IntroAnim_KZ.Show(0, 0.5f, LoadGameScene);
         }
     }
 }

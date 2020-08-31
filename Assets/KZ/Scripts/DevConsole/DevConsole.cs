@@ -78,7 +78,7 @@ namespace KZ {
         public static event Action OnCloseConsole = delegate { };
 
         public static void Initialize() {
-            if (!KZ_Settings.GetValue("useDevConsole", true)) {
+            if (!KZ_Settings.GetValue("useDevConsole", DefaultKZValues.allowDevConsole)) {
                 Debug.Log("not using devConsole");
                 return;
             }
@@ -279,6 +279,7 @@ namespace KZ {
         static List<DevButton> _devButtons = new List<DevButton>();
 
         public static DevButton AddButton(Action<DevButton> onClick, string defaultTitle = "button") {
+            if (!instance) return null;
             var parent = instance._containerDevButtons;
             var btn = Instantiate(Resources.Load<DevButton>("UI/DevButton"));
             btn.Initialize();
