@@ -201,6 +201,12 @@ namespace KZ {
 
         //DATETIME
         /// <summary>Better for filenames</summary>
+        public static string ToKzFormatNoStrings(this DateTime d) {
+            return
+                d.Year.ToString("0000") + d.Month.ToString("00") + d.Day.ToString("00") +
+                d.Hour.ToString("00") + d.Minute.ToString("00") + d.Second.ToString("00");
+        }
+        /// <summary>Better for filenames</summary>
         public static string ToKzFormat(this DateTime d) {
             return
                 "[" + d.Year.ToString("0000") + "-" + d.Month.ToString("00") + "-" + d.Day.ToString("00") + "]" +

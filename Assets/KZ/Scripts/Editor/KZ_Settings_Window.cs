@@ -1,10 +1,12 @@
 ﻿using KZ;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class KZ_Settings_Window : EditorWindow {
 
@@ -68,15 +70,18 @@ public class KZ_Settings_Window : EditorWindow {
             case BuildTarget.StandaloneWindows64: fileExtension = ".exe"; break;
             default: break;
         }
+        
         BuildPlayerOptions buildPlayerOptions = new BuildPlayerOptions();
-        //buildPlayerOptions.scenes = new[] { "Assets/Scene1.unity", "Assets/Scene2.unity" };
-
-        var path = "KZBUILD/" + buildTarget.ToString();
-        if (Directory.Exists(path)) Directory.Delete(path);
-
-        buildPlayerOptions.locationPathName = path + "/jubileitor" + fileExtension;
+        
+        var appName = Application.productName;
+        var version = System.DateTime.Now.ToKzFormatNoStrings();
+        buildPlayerOptions.locationPathName = "KZBUILD/" + buildTarget.ToString() + "/" + appName + "_" + version + fileExtension;
         buildPlayerOptions.target = buildTarget;
         buildPlayerOptions.options = BuildOptions.None;
+        buildPlayerOptions.scenes = EditorBuildSettings.scenes
+           .Where(s => s.enabled)
+           .Select(s => s.path)
+           .ToArray();
 
         BuildReport report = BuildPipeline.BuildPlayer(buildPlayerOptions);
         BuildSummary summary = report.summary;
@@ -84,6 +89,8 @@ public class KZ_Settings_Window : EditorWindow {
         if (summary.result == BuildResult.Succeeded) {
             Debug.Log("Build succeeded: " + summary.totalSize + " bytes, " + buildTarget.ToString());
             Debug.Log(summary.outputPath);
+            Debug.Log("build time: " + (summary.buildEndedAt - summary.buildStartedAt).TotalSeconds);
+            OpenInFolder(summary.outputPath);
         }
 
         if (summary.result == BuildResult.Failed) {
@@ -145,5 +152,29 @@ public class KZ_Settings_Window : EditorWindow {
 
         //close scene
         EditorSceneManager.CloseScene(scene, true);
+    }
+
+    void OpenInFolder(string path) {
+        bool openInsidesOfFolder = false;
+
+        // try windows
+        string winPath = path.Replace("/", "\\"); // windows explorer doesn't like forward slashes
+
+        if (System.IO.Directory.Exists(winPath)) // if path requested is a folder, automatically open insides of that folder
+        {
+            openInsidesOfFolder = true;
+        }
+
+        try
+        {
+            System.Diagnostics.Process.Start("explorer.exe", (openInsidesOfFolder ? "/root," : "/select,") + winPath);
+        }
+        catch (System.ComponentModel.Win32Exception e)
+        {
+            // tried to open win explorer in mac
+            // just silently skip error
+            // we currently have no platform define for the current OS we are in, so we resort to this
+            e.HelpLink = ""; // do anything with this variable to silence warning about not using it
+        }
     }
 }
