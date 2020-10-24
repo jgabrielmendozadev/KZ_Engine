@@ -160,6 +160,22 @@ namespace KZ {
                     helpText);
             }
         }
+        //float
+        public static void AssignCommand(string commandName, Action<float> command, string helpText = "") {
+            string cmd = commandName;
+            if (_allCommands.ContainsKey(cmd))
+                Debug.Log("command already contained: " + cmd);
+            else {
+                _allCommands[cmd] = new ConsoleCommand(
+                    param => {
+                        if (float.TryParse(param, out float value))
+                            command(value);
+                        else
+                            Log("Wrong parameter, type expected: FLOAT\n" + cmd + ": " + _allCommands[cmd].help);
+                    },
+                    helpText);
+            }
+        }
         //string
         public static void AssignCommand(string commandName, Action<string> command, string helpText = "") {
             string cmd = commandName;
