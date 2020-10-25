@@ -1,11 +1,11 @@
 fileFormatVersion: 2
-guid: 502e6efa07d9b0544a93b61779700f47
-timeCreated: 1558655440
-licenseType: Free
+guid: 31d8b9e82c5484341b1e81b1c9bb150e
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - m_ViewDataDictionary: {instanceID: 0}
+  - currSettings: {fileID: 11400000, guid: 79ae5f2294e740444a7e754896615265, type: 2}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

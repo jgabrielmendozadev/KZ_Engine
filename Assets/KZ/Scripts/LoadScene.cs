@@ -31,7 +31,7 @@ namespace KZ {
 
             //Init DEVELOPER CONSOLE
             DevConsole.Initialize();
-            if (KZ_Settings.GetValue("useDevConsole", DefaultKZValues.allowDevConsole))
+            if (KZ_Settings.GetValue("useDevConsole", DefaultKZValues.settings.allowDevConsole))
                 logs.ForEach(l => l());
         }
 
