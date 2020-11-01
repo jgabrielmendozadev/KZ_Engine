@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using KZ.Managers;
 
 namespace KZ {
     public class DevConsole : MonoBehaviour {
@@ -24,8 +25,20 @@ namespace KZ {
         const KeyCode KeyOpenConsole = KeyCode.F1;
 #endif
 
-        private void Awake() {
-            Awake_Singleton();
+        public static DevConsole Create() {
+            if (!Locator.settings.GetValue("useDevConsole", DefaultKZValues.settings.allowDevConsole)) {
+                Debug.Log("not using devConsole");
+                return null;
+            }
+
+            var dc = Instantiate(Resources.Load<DevConsole>("UI/DevConsole"));
+            DontDestroyOnLoad(dc.gameObject);
+            return dc;
+        }
+
+        public void Initialize() {
+            LoadScene.OnResetApp += CloseConsole; //TODO(check this)
+            InitializeButtons(); //TODO(check this)
 
             //BASIC CONSOLE
             _isOpen = false;
@@ -48,22 +61,25 @@ namespace KZ {
             Application.logMessageReceived += PrintLog; //UNITY DEBUG LOG
             CloseConsole();
         }
-        private void Update() {
-            if (InputManager.GetInput("ToggleConsole")) ToggleConsole();
-            if (InputManager.GetInput("Execute")) Execute();
-        }
-        private void OnDestroy() {
+        public void Dispose() {
             Application.logMessageReceived -= PrintLog;
             LoadScene.OnResetApp -= CloseConsole;
             InputManager.RemoveKey("ToggleConsole", KeyCode.F1);
             InputManager.RemoveKey("Execute", KeyCode.Return);
             InputManager.RemoveKey("Execute", KeyCode.KeypadEnter);
+            Destroy(gameObject);
         }
+        private void Update() {
+            if (InputManager.GetInput("ToggleConsole")) ToggleConsole();
+            if (InputManager.GetInput("Execute")) Execute();
+        }
+
         public void ExecuteCommand() { Execute(); }
 
 
 
-        //STATIC
+
+
         public struct ConsoleCommand {
             public Action<string> command;
             public string help;
@@ -72,70 +88,49 @@ namespace KZ {
                 help = helpText;
             }
         }
-        static bool _isOpen;
-        static Dictionary<string, ConsoleCommand> _allCommands = new Dictionary<string, ConsoleCommand>();
-        public static event Action OnOpenConsole = delegate { };
-        public static event Action OnCloseConsole = delegate { };
-
-        public static void Initialize() {
-            if (!KZ_Settings.GetValue("useDevConsole", DefaultKZValues.settings.allowDevConsole)) {
-                Debug.Log("not using devConsole");
-                return;
-            }
-            if (instance) {
-                InitializeButtons();
-                return;
-            }
-            var dc = Instantiate(Resources.Load<DevConsole>("UI/DevConsole"));
-            DontDestroyOnLoad(dc.gameObject);
-            LoadScene.OnResetApp += CloseConsole;
-            InitializeButtons();
-        }
+        bool _isOpen;
+        Dictionary<string, ConsoleCommand> _allCommands = new Dictionary<string, ConsoleCommand>();
+        public event Action OnOpenConsole = delegate { };
+        public event Action OnCloseConsole = delegate { };
 
 
-        #region SINGLETON
-        static DevConsole instance = null;
-        void Awake_Singleton() {
-            if (instance != null)
-                Destroy(gameObject); //Destroy new, keep old
-            instance = this;
-        }
-        #endregion
+
+
 
         #region LOGGER
-        static void Write(string text) {
-            instance._txtOutput.text += "\n" + text;
+        void Write(string text) {
+            _txtOutput.text += "\n" + text;
             LimitLines();
             FixLogHeight();
         }
-        public static void Log(string text) {
+        public void Log(string text) {
             Write("·" + text);
         }
-        public static void Log(string text, Color color) {
+        public void Log(string text, Color color) {
             Write("·" + text.Colorize(color));
         }
-        static void LimitLines() {
+        void LimitLines() {
             Canvas.ForceUpdateCanvases();
-            var lines = instance._txtOutput.cachedTextGenerator.lines;
+            var lines = _txtOutput.cachedTextGenerator.lines;
             var numerOfLines = lines.Count;
-            if (numerOfLines > instance._maxLines)
-                instance._txtOutput.text = instance._txtOutput.text.Remove(0, lines[numerOfLines - instance._maxLines].startCharIdx);
+            if (numerOfLines > _maxLines)
+                _txtOutput.text = _txtOutput.text.Remove(0, lines[numerOfLines - _maxLines].startCharIdx);
         }
-        static void FixLogHeight() {
-            var height = instance._txtOutput.preferredHeight;
-            instance._rectContent.sizeDelta = instance._rectContent.sizeDelta.SetY(height);
+        void FixLogHeight() {
+            var height = _txtOutput.preferredHeight;
+            _rectContent.sizeDelta = _rectContent.sizeDelta.SetY(height);
         }
         #endregion
 
 
         //CONSOLE
         #region COMMAND HANDLING
-        public static void RemoveCommand(string commandName) {
+        public void RemoveCommand(string commandName) {
             string cmd = commandName;
             _allCommands.Remove(cmd);
         }
         //no params
-        public static void AssignCommand(string commandName, Action command, string helpText = "") {
+        public void AssignCommand(string commandName, Action command, string helpText = "") {
             string cmd = commandName;
             if (_allCommands.ContainsKey(cmd))
                 Debug.Log("command already contained: " + cmd);
@@ -144,7 +139,7 @@ namespace KZ {
             }
         }
         //int
-        public static void AssignCommand(string commandName, Action<int> command, string helpText = "") {
+        public void AssignCommand(string commandName, Action<int> command, string helpText = "") {
             string cmd = commandName;
             if (_allCommands.ContainsKey(cmd))
                 Debug.Log("command already contained: " + cmd);
@@ -161,7 +156,7 @@ namespace KZ {
             }
         }
         //float
-        public static void AssignCommand(string commandName, Action<float> command, string helpText = "") {
+        public void AssignCommand(string commandName, Action<float> command, string helpText = "") {
             string cmd = commandName;
             if (_allCommands.ContainsKey(cmd))
                 Debug.Log("command already contained: " + cmd);
@@ -177,7 +172,7 @@ namespace KZ {
             }
         }
         //string
-        public static void AssignCommand(string commandName, Action<string> command, string helpText = "") {
+        public void AssignCommand(string commandName, Action<string> command, string helpText = "") {
             string cmd = commandName;
             if (_allCommands.ContainsKey(cmd))
                 Debug.Log("command already contained: " + cmd);
@@ -187,11 +182,11 @@ namespace KZ {
         #endregion
 
         #region DEVELOPER CONSOLE HANDLING
-        public static void Execute() {
+        public void Execute() {
             if (!_isOpen) return;
 
             //read input
-            string input = instance._inpCommand.text.Replace("\n", "");
+            string input = _inpCommand.text.Replace("\n", "");
 
             //if input is empty
             if (input == "") return;
@@ -207,7 +202,7 @@ namespace KZ {
 
             string key = "";
             bool cmdFound = _allCommands.Keys.Find(k => k.ToUpper() == command.ToUpper(), ref key);
-            Color color = cmdFound ? instance._colorInputCommand : instance._colorInputNotFound;
+            Color color = cmdFound ? _colorInputCommand : _colorInputNotFound;
 
             //Write that input
             Write((">" + command).Colorize(color) + " " + param);
@@ -218,49 +213,49 @@ namespace KZ {
                 Log("Unknown command: " + command);
 
             //reset input
-            instance._inpCommand.text = "";
+            _inpCommand.text = "";
             SelectInputField();
         }
 
-        public static void ToggleConsole() {
+        public void ToggleConsole() {
             if (_isOpen)
                 CloseConsole();
             else
                 OpenConsole();
         }
 
-        public static void OpenConsole() {
+        public void OpenConsole() {
             _isOpen = true;
-            instance._goConsole.SetActive(true);
-            instance._inpCommand.text = "";
+            _goConsole.SetActive(true);
+            _inpCommand.text = "";
             SelectInputField();
             OnOpenConsole();
         }
-        public static void CloseConsole() {
+        public void CloseConsole() {
             _isOpen = false;
-            instance._goConsole.SetActive(false);
-            instance._inpCommand.text = "";
+            _goConsole.SetActive(false);
+            _inpCommand.text = "";
             OnCloseConsole();
         }
 
-        static void SelectInputField() {
+        void SelectInputField() {
             UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
-            UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(instance._inpCommand.gameObject);
+            UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(_inpCommand.gameObject);
         }
         #endregion
 
         #region BASIC COMMANDS
-        static void Help() {
+        void Help() {
             var max = _allCommands.Keys.Max(k => k.Length) + 1;
             string s = "Commands are not case sensitive. Possible Commands:\n"
                 + _allCommands.MakeString(kv => " -" + kv.Key.Fill(max, " ") + "-> " + kv.Value.help, '\n');
             Log(s);
         }
-        static void Clear() {
-            instance._txtOutput.text = "";
+        void Clear() {
+            _txtOutput.text = "";
             FixLogHeight();
         }
-        static void Exit() {
+        void Exit() {
             Log("CLOSING GAME");
 #if UNITY_EDITOR
             Debug.Break();
@@ -270,7 +265,7 @@ namespace KZ {
         #endregion
 
         #region UNITY CONSOLE LOG
-        public static void PrintLog(string condition, string stackTrace, LogType type) {
+        public void PrintLog(string condition, string stackTrace, LogType type) {
             //add new line
             var c = _logColors[type];
             string s = "█".Colorize(c)
@@ -292,11 +287,10 @@ namespace KZ {
 
         //ACTIONS
         #region BUTTON HANDLING
-        static List<DevButton> _devButtons = new List<DevButton>();
+        List<DevButton> _devButtons = new List<DevButton>();
 
-        public static DevButton AddButton(Action<DevButton> onClick, string defaultTitle = "button") {
-            if (!instance) return null;
-            var parent = instance._containerDevButtons;
+        public DevButton AddButton(Action<DevButton> onClick, string defaultTitle = "button") {
+            var parent = _containerDevButtons;
             var btn = Instantiate(Resources.Load<DevButton>("UI/DevButton"));
             btn.Initialize();
             btn.SetAction(onClick);
@@ -304,12 +298,12 @@ namespace KZ {
             btn.transform.SetParent(parent);
             btn.transform.localScale = Vector3.one;
             Canvas.ForceUpdateCanvases();
-            parent.sizeDelta = parent.sizeDelta.SetY(instance._grid.preferredHeight);
+            parent.sizeDelta = parent.sizeDelta.SetY(_grid.preferredHeight);
             _devButtons.Add(btn);
             return btn;
         }
 
-        static void InitializeButtons() {
+        void InitializeButtons() {
             foreach (var btn in _devButtons) Destroy(btn.gameObject);
             _devButtons.Clear();
             AddButton(x => Clear(), "Clear log");

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using USM = UnityEngine.SceneManagement.SceneManager;
+﻿using USM = UnityEngine.SceneManagement.SceneManager;
 
 namespace KZ.Managers {
     public static class SceneManager {
@@ -13,6 +9,7 @@ namespace KZ.Managers {
             USM.LoadScene(sceneName);
         }
 
+        /// <summary>example: LoadScene(SceneManager.INTRO)</summary>
         public static bool LoadScene(string sceneName, float fadeOutTime = 0.4f, float fadeInTime = 1.0f) {
             var at = AppTransition.instance;
             if (at != null && !at.isTransitioning) {
@@ -24,18 +21,11 @@ namespace KZ.Managers {
 
 
 
-        const string
+        public const string
             SPLASH = "0.LoadScene",
-            GAME = "1.IntroGame";
+            INTRO_KZ = "0.KZ",
+            MAIN_MENU = "1.MainMenu";
+        
 
-        public static void LoadSplashScene() => LoadSceneInstant(SPLASH);
-        public static void LoadGameScene() => LoadScene(GAME);
-
-        public static void LoadIntroScene() {
-            if (KZ_Settings.GetValue("skipIntro", DefaultKZValues.settings.skipIntro))
-                LoadGameScene();
-            else
-                IntroAnim_KZ.Show(0, 0.5f, LoadGameScene);
-        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using KZ.Managers;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,35 +11,24 @@ namespace KZ {
 
         private IEnumerator Start() {
 
-            yield return new WaitForEndOfFrame(); // wait 1 frame, to render the images
+            yield return new WaitForEndOfFrame(); // wait 1 frame, to render the splash image
 
             OnResetApp();
             InitializeGameSettings();
             AppTransition.Initialize();
-            DevConsole.AddButton(x => ResetApp(), "reset");
 
-            yield return new WaitForEndOfFrame();
-            SceneManager.LoadIntroScene();
+            //TODO: move this to locator? app flow?
+            //DevConsole.AddButton(x => ResetApp(), "reset"); 
+            Locator.Initialize();
         }
 
-        static void InitializeGameSettings() {
-            //Init KZ_SETTINGS (reading logs, to show them in the dev console)
-            //List<Action> logs = new List<Action>();
-            //Application.LogCallback onLogReceived = (c, s, t) => logs.Add(() => DevConsole.PrintLog(c, s, t));
-            //Application.logMessageReceived += onLogReceived;
-            //KZ_Settings.Initialize();
-            //Application.logMessageReceived -= onLogReceived;
-
-            //Init DEVELOPER CONSOLE
-            DevConsole.Initialize();
-            //if (KZ_Settings.GetValue("useDevConsole", DefaultKZValues.settings.allowDevConsole))
-            //    logs.ForEach(l => l());
-        }
+        static void InitializeGameSettings() { }
 
 #if UNITY_EDITOR
         [RuntimeInitializeOnLoadMethod]
         static void InitializeGame() {
-            SceneManager.LoadSplashScene();
+            Debug.Log("App INIT");
+            SceneManager.LoadSceneInstant(SceneManager.SPLASH);
         }
 #endif
 
@@ -50,7 +40,7 @@ namespace KZ {
         //Loads this first scene
         public static void ResetApp() {
             Debug.Log("App reset");
-            SceneManager.LoadSplashScene();
+            SceneManager.LoadScene(SceneManager.SPLASH);
         }
 
     }

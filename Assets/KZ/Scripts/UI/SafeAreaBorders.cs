@@ -39,8 +39,6 @@ public class SafeAreaBorders : MonoBehaviour {
         if (_safeArea == Screen.safeArea && _resolution.Equals(Screen.currentResolution))
             return;
 
-        Debug.Log($"safe area: {_safeArea}");
-
         _rt.pivot = Vector2.zero;
         _rt.rotation = Quaternion.identity;
         _rt.localScale = Vector3.one;

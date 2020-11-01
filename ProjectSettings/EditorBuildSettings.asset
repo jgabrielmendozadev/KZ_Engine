@@ -12,6 +12,6 @@ EditorBuildSettings:
     path: Assets/KZ/Scenes/0.KZ.unity
     guid: 0c494961e0d510c4199689a1599c72e4
   - enabled: 1
-    path: Assets/KZ_Test safe area/1.IntroGame.unity
+    path: Assets/KZ_Test safe area/1.MainMenu.unity
     guid: 5be4d481268519d42a72ad234667a216
   m_configObjects: {}

@@ -55,13 +55,17 @@ namespace KZ.StateMachine {
             }
         }
 
-        public void Update() => currentState.Update();       
+        public virtual void Update() => currentState.Update();       
     }
 
 
     public class State<T> {
         public string name { get; private set; }
-        public State(string name = "") => this.name = name;
+        protected StateMachine<T> _stateMachine;
+        public State(StateMachine<T> stateMachine, string name = "") {
+            _stateMachine = stateMachine;
+            this.name = name;
+        }
 
         public event Action<T> OnEnter = delegate { };
         public event Action<T> OnExit = delegate { };
