@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using USM = UnityEngine.SceneManagement.SceneManager;
 
-namespace KZ {
+namespace KZ.Managers {
     public static class SceneManager {
 
 

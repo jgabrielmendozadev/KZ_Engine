@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using SceneManager = KZ.SceneManager;
+using SceneManager = KZ.Managers.SceneManager;
 
 namespace KZ {
     public class LoadScene : MonoBehaviour {
@@ -23,16 +23,16 @@ namespace KZ {
 
         static void InitializeGameSettings() {
             //Init KZ_SETTINGS (reading logs, to show them in the dev console)
-            List<Action> logs = new List<Action>();
-            Application.LogCallback onLogReceived = (c, s, t) => logs.Add(() => DevConsole.PrintLog(c, s, t));
-            Application.logMessageReceived += onLogReceived;
-            KZ_Settings.Initialize();
-            Application.logMessageReceived -= onLogReceived;
+            //List<Action> logs = new List<Action>();
+            //Application.LogCallback onLogReceived = (c, s, t) => logs.Add(() => DevConsole.PrintLog(c, s, t));
+            //Application.logMessageReceived += onLogReceived;
+            //KZ_Settings.Initialize();
+            //Application.logMessageReceived -= onLogReceived;
 
             //Init DEVELOPER CONSOLE
             DevConsole.Initialize();
-            if (KZ_Settings.GetValue("useDevConsole", DefaultKZValues.settings.allowDevConsole))
-                logs.ForEach(l => l());
+            //if (KZ_Settings.GetValue("useDevConsole", DefaultKZValues.settings.allowDevConsole))
+            //    logs.ForEach(l => l());
         }
 
 #if UNITY_EDITOR
