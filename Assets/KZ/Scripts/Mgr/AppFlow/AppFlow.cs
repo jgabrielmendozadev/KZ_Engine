@@ -21,7 +21,6 @@ namespace KZ.Managers {
             //transitions
             AddTransition(intro, "intro anim ended", mainMenu);
 
-
             Begin(intro, true);
 
             //updates
