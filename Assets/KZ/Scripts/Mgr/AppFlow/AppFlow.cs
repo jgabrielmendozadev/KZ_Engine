@@ -21,7 +21,11 @@ namespace KZ.Managers {
             //transitions
             AddTransition(intro, "intro anim ended", mainMenu);
 
-            Begin(intro, true);
+            //TODO change this
+            if (DefaultKZValues.settings.skipIntro)
+                Begin(mainMenu, true);
+            else
+                Begin(intro, true);
 
             //updates
             Locator.behaviourManager.OnUpdate += Update;
